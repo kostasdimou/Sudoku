@@ -33,6 +33,7 @@ class Sudoku {
 	private Coordinate coordinate = Coordinate.JAVA;
 	private List<Method> methodList = new ArrayList<Method>();
 	private List<String> goList = new ArrayList<String>();
+	private List<int> allAllowed = Stream.iterate(1, n -> n + 1).limit(MAX).collect(Collectors.toList());
     private Scanner in = new Scanner(System.in);
 
 	public enum Area {
@@ -49,6 +50,7 @@ class Sudoku {
 		NAKED_SINGLE,
 		HIDDEN_SINGLE,
 		MISSING,
+		NAKED_PAIR
 	};
 
 	public enum Coordinate {
@@ -56,6 +58,115 @@ class Sudoku {
 		JAVA, // Y=0-9, X=0-9 (default)
 		SUDOKU // Y=A-I, X=1-9
 	};
+
+	class Position {
+		int y;
+		int x;
+
+		Position() {
+			y = NOT_FOUND;
+			x = NOT_FOUND;
+		}
+
+		Position(int row, int column) {
+			y = row;
+			x = column;
+		}
+
+		Position(Position position) {
+			y = position.y;
+			x = position.x;
+		}
+
+		void print(int depth) {
+			System.out.print(margin(depth) + "[" + coordinateY(y) + "," + coordinateX(x) + "]");
+		}
+
+		void println(int depth) {
+			print(depth);
+			System.out.println();
+		}
+
+		boolean equals(Position position) {
+			if(y == position.y)
+				return (x == position.x);
+			return false;
+		}
+	}
+
+	class Cell implements Comparable<Cell> {
+		Position position;
+		int number;
+		List<int> allowed = allAllowed;
+
+		Cell() {
+			number = MISSING;
+		}
+
+		Cell(int number) {
+			this.number = number;
+		}
+
+		Cell(Position position, int number) {
+			this.position = position;
+			this.number = number;
+		}
+
+		void print(int depth) {
+			System.out.print(margin(depth) + "Cell");
+			position.print(0);
+			System.out.print(EMPTY + SPACE + number);
+		}
+
+		void println(int depth) {
+			print(depth);
+			System.out.println();
+		}
+
+		boolean equals(Cell cell) {
+			if(position.equals(cell.position))
+				return (number == cell.number);
+			return false;
+		}
+
+		// Removes allowed numbers
+		void remove(int notAllowed) {
+			allowed.remove(allowed.indexOf(notAllowed));
+		}
+	}
+
+	class Pair implements Comparable<Pair> {
+		List<Cell> cellList = new ArrayList<Cell>();
+
+		boolean equals(Pair pair) {
+			switch(cellList.size()) {
+				case 0:
+					return true;
+				case 1:
+					return cellList.get(0).equals(pair.cellList.get(0));
+				default:
+					if(cellList.get(0).equals(pair.cellList.get(0)))
+						return cellList.get(1).equals(pair.cellList.get(1));
+			}
+			return false;
+		}
+
+		int value() {
+			switch(cellList.size()) {
+				case 0:
+					return 0;
+				case 1:
+					return MAX * cellList.get(0).number;
+				default:
+					return MAX * cellList.get(0).number + cellList.get(1).number;
+			}
+			return 0;
+		}
+	}
+
+	class Matrix {
+		private Cell[][] cellList = new Cell[MAX][MAX]; // [row][column]
+	}
 
     void setAnalyze() {
 		this.analyze = true;
@@ -183,7 +294,7 @@ class Sudoku {
 
 	// Converts JAVA y, x indexes to coordinate system
 	String coordinates(int y, int x) {
-		return "[" + coordinateY(y) + "," + coordinateX(x) +"]";
+		return EMPTY + coordinateY(y) + coordinateX(x);
 	}
 
 	// Converts the coordinate system y to JAVA index
@@ -532,6 +643,12 @@ class Sudoku {
 		}
 	}
 
+    void unset(int number, List<Cell> cellList) {
+		if(number != MISSING)
+			for(Cell cell: cellList)
+				cell.remove(number);
+	}
+
     int setNumber(int row, int column, int number) {
 		s[row][column][FACE] = number;
 		if(number != MISSING)
@@ -558,6 +675,115 @@ class Sudoku {
 		   (countAreaException(Area.VERTICAL, row, column, number, depth) == MAX - 1) || // last one vertically
 		   (countAreaException(Area.NUMBER, row, column, number, depth) == 0)) // all others are not allowed here
 			added += setNumber(row, column, number);
+		var(depth, "added", added);
+		if(view && (added > 0))
+			System.out.println(Method.NAKED_SINGLE.name() + " >> " + number + " @ " + coordinates(row, column));
+		return added;
+    }
+
+    List<Pair> pairsArea(Area area, int row, int column, int depth) {
+		log(depth++, "pairsArea(area = " + area + ", row = " + row + ", column = " + column + ")");
+		List<Pair> pairList = new ArrayList<Pair>();
+		switch(area) {
+			case ALL:
+				for(int y = 0; y < MAX; y++)
+					for(int x = 0; x < MAX; x++) {
+						Position position = new Position(y, x);
+						if(countArea(Area.NUMBER, y, x, depth) == 2) {
+							Pair pair = new Pair();
+							for(int number = 1; number <= MAX; number++)
+								if(s[y][x][number] == number) {
+									Cell cell = new Cell(position, number);
+									pair.cellList.add(cell);
+								}
+							pairList.add(pair);
+						}
+					}
+				break;
+			case BLOCK:
+				for(int i = 0, y = blockBase(row); i < MIN; i++, y++)
+					for(int j = 0, x = blockBase(column); j < MIN; j++, x++) {
+						Position position = new Position(y, x);
+						if(countArea(Area.NUMBER, y, x, depth) == 2) {
+							Pair pair = new Pair();
+							for(int number = 1; number <= MAX; number++)
+								if(s[y][x][number] == number) {
+									Cell cell = new Cell(position, number);
+									pair.cellList.add(cell);
+								}
+							pairList.add(pair);
+						}
+					}
+				break;
+			case HORIZONTAL:
+				for(int x = 0; x < MAX; x++) {
+					Position position = new Position(row, x);
+					if(countArea(Area.NUMBER, row, x, depth) == 2) {
+						Pair pair = new Pair();
+						for(int number = 1; number <= MAX; number++)
+							if(s[row][x][number] == number) {
+								Cell cell = new Cell(position, number);
+								pair.cellList.add(cell);
+							}
+						pairList.add(pair);
+					}
+				}
+				break;
+			case VERTICAL:
+				for(int y = 0; y < MAX; y++) {
+					Position position = new Position(y, column);
+					if(countArea(Area.NUMBER, y, column, depth) == 2) {
+						Pair pair = new Pair();
+						for(int number = 1; number <= MAX; number++)
+							if(s[y][column][number] == number) {
+								Cell cell = new Cell(position, number);
+								pair.cellList.add(cell);
+							}
+						pairList.add(pair);
+					}
+				}
+				break;
+		}
+		return pairList;
+	}
+
+	int twinPairs(List<Pair> pairList) {
+	}
+
+    // Check for multiple naked pairs per area and unset the allowed numbers.
+	// 
+	//     B  B  B                                                      V
+	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	// B |13| 6|12|  |  |  |  |  |  | H | 6|12| 7| 8|12|13|95|24|49|  |13|  |  |  |  |  |  |  |  |
+	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	// B |94|12| 7|  |  |  |  |  |  |   |  |  |  |  |  |  |  |  |  |  |12|  |  |  |  |  |  |  |  |
+	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	// B |49| 8|24|  |  |  |  |  |  |   |  |  |  |  |  |  |  |  |  |  |12|  |  |  |  |  |  |  |  |
+	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	//    Example Block                  Example Horizontal            Example Vertical
+    int setNakedPair(int row, int column, int number, int depth) {
+		log(depth++, "setNakedPair(row = " + row + ", column = " + column + ", number = " + number + ")");
+		int added = 0;
+		List<Pair> pairList = pairsArea(Area.BLOCK, row, column, depth);
+		int pairs = pairList.size();
+		var(depth, "pairs", pairs);
+		for(int p = 0; p < pairs; p++) {
+			int first = pairList.get(p).value();
+			for(int q = p; q < pairs; q++) {
+				int second = pairList.get(q).value();
+				if(first == second) {
+					List<Cell> cellList = matrix.horizontal(row);
+					cellList.remove(matrix.cells(first.position));
+					cellList.remove(matrix.cells(second.position));
+					matrix.unset(int number, cellList);
+				}
+			}
+		}
+		pairList = pairsArea(Area.HORIZONTAL, row, column, depth);
+		var(depth, "pairs", pairList.size());
+		pairList = pairsArea(Area.VERTICAL, row, column, depth);
+		var(depth, "pairs", pairList.size());
+		// added += setNumber(row, column, number);
 		var(depth, "added", added);
 		if(view && (added > 0))
 			System.out.println(Method.NAKED_SINGLE.name() + " >> " + number + " @ " + coordinates(row, column));
@@ -723,6 +949,8 @@ class Sudoku {
 								   added += setMissing(y, x, number, depth);
 								if(methodList.contains(Method.HIDDEN_SINGLE))
 									added += setHiddenSingle(y, x, number, depth);
+								if(methodList.contains(Method.NAKED_PAIR))
+									added += setNakedPair(y, x, number, depth);
 							}
 							if(go.length() > 0)
 								break;
@@ -858,6 +1086,7 @@ class Sudoku {
 		System.out.println("        Available methods:");
 		System.out.println("            HIDDEN_SINGLE");
 		System.out.println("            MISSING");
+		System.out.println("            NAKED_PAIR");
 		System.out.println("            NAKED_SINGLE");
 		System.out.println("    -s or --solve:");
 		System.out.println("        Solves the Sudoku by using all possible methods.");
@@ -873,7 +1102,7 @@ class Sudoku {
 		System.out.println("    java Sudoku -s --view < Sudoku.0002");
 		System.out.println("    java Sudoku -s --go 419 --debug < Sudoku.0006");
 		System.out.println("    java Sudoku -s --method NAKED_SINGLE < Sudoku.0000");
-		System.out.println("    java Sudoku -s -m NAKED_SINGLE -m MISSING < Sudoku.0001");
+		System.out.println("    java Sudoku -s -m NAKED_SINGLE -m NAKED_PAIR < Sudoku.0001");
 	}
 
     public static void main(String[] args) {
