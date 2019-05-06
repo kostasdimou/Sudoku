@@ -15,6 +15,7 @@ class Sudoku {
     private static final char PIPE = '|';
     private static final char PLUS = '+';
     private static final char SPACE = ' ';
+    private static final String TAB = "  ";
     private static final String[] methods = {"setSingle", "setMissing", "setAllowed"};
 
 	private static boolean analyze = false;
@@ -66,10 +67,9 @@ class Sudoku {
 	}
 
 	public static String margin(int depth) {
-		int width = depth * 2;
 		String result = "";
-		for(int i = 0; i < width; i++)
-			result += SPACE;
+		for(int i = 0; i < depth; i++)
+			result += TAB;
 		return result;
 	}
 
