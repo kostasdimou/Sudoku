@@ -4,19 +4,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
-class Sudoku {
+class Sudoku3 {
     private static final int MAX = 9;
     private static final int TOTAL = MAX * MAX;
     private static final int MIN = MAX / 3;
     private static final int FACE = 0;
     private static final int MISSING = 0;
     private static final int NOT_FOUND = -1;
+    private static final int QUIET = -1;
     private static final char DASH = '-';
     private static final char PIPE = '|';
     private static final char PLUS = '+';
     private static final char SPACE = ' ';
-    private static final String TAB = "  ";
-    private static final String[] methods = {"setSingle", "setMissing", "setAllowed"};
+    private static final char ZERO = '0';
+    private static final char ALPHA = 'A';
+    private static final String EMPTY = "";
 
 	private static boolean analyze = false;
 	private static boolean debug = false;
@@ -28,8 +30,9 @@ class Sudoku {
     private int passages = 0;
     private long startTime = 0;
     private long endTime = 0;
-	private List<String> isActive = new ArrayList<String>(Arrays.asList(methods));
-	private List<String> goes = new ArrayList<String>();
+	private Coordinate coordinate = Coordinate.JAVA;
+	private List<Method> methodList = new ArrayList<Method>();
+	private List<String> goList = new ArrayList<String>();
     private Scanner in = new Scanner(System.in);
 
 	public enum Area {
@@ -42,20 +45,78 @@ class Sudoku {
 		NUMBER //  1 * 1 * n (1 * 1)
 	}
 
+	public enum Method {
+		NAKED_SINGLE,
+		HIDDEN_SINGLE,
+		MISSING,
+	};
+
+	public enum Coordinate {
+		CHESS, // Y=9-1, X=A-I
+		JAVA, // Y=0-9, X=0-9 (default)
+		SUDOKU // Y=A-I, X=1-9
+	};
+
     void setAnalyze() {
 		this.analyze = true;
+	}
+
+    boolean setCoordinate(String coordinateName) {
+		boolean found = false;
+		for(Coordinate coordinate: Coordinate.values())
+			if(coordinateName.equals(coordinate.name())) {
+				this.coordinate = coordinate;
+				found = true;
+			}
+		if(!found)
+			System.out.println("Unsupported coordinate: " + coordinateName);
+		return found;
 	}
 
     void setDebug() {
 		this.debug = true;
 	}
 
-    void setGo(String go) {
-		goes.add(go);
+	// Stores the specific cell coordinates and number to work with
+    boolean setGo(String go) {
+		String message = "Incompatible coordinates: " + go;
+		StringBuilder goUpper = new StringBuilder(go.toUpperCase());
+		char y = goUpper.charAt(0);
+		if((y >= ALPHA) && (coordinate != Coordinate.SUDOKU)) {
+			System.out.println(message);
+			return false;
+		}
+		char x = goUpper.charAt(1);
+		if((x >= ALPHA) && (coordinate != Coordinate.CHESS)) {
+			System.out.println(message);
+			return false;
+		}
+		if(((y >= ZERO + MAX) || (x >= ZERO + MAX)) && (coordinate == Coordinate.JAVA)) {
+			System.out.println(message);
+			return false;
+		}
+		goUpper.setCharAt(0, readY(y));
+		goUpper.setCharAt(1, readX(x));
+		goList.add(goUpper.toString());
+		return true;
 	}
 
     void setInteractive() {
 		this.interactive = true;
+	}
+
+	// Stores the methods we want activated for the solution
+    boolean setActive(String methodName) {
+		boolean found = false;
+		for(Method method: Method.values())
+			if(methodName.equals(method.name())) {
+				if(!methodList.contains(method))
+					methodList.add(method);
+				found = true;
+			}
+		if(!found)
+			System.out.println("Unsupported method: " + methodName);
+		return found;
 	}
 
     void setSolve() {
@@ -67,9 +128,10 @@ class Sudoku {
 	}
 
 	public static String margin(int depth) {
-		String result = "";
-		for(int i = 0; i < depth; i++)
-			result += TAB;
+		int width = depth * 2;
+		String result = EMPTY;
+		for(int i = 0; i < width; i++)
+			result += SPACE;
 		return result;
 	}
 
@@ -83,6 +145,87 @@ class Sudoku {
 		log(depth, message);
 	}
 
+	// Converts JAVA y index to coordinate system
+	char coordinateY(Integer y) {
+		char map = SPACE;
+		switch(coordinate) {
+			case JAVA: // Y=0-9, X=0-9
+				map = y.toString().charAt(0);
+				break;
+			case SUDOKU: // Y=A-I, X=1-9
+				map = (char)(ALPHA + y);
+				break;
+			case CHESS: // Y=9-1, X=A-I
+				y = MAX - y;
+				map = y.toString().charAt(0);
+				break;
+		}
+		return map;
+	}
+
+	// Converts JAVA x index to coordinate system
+	char coordinateX(Integer x) {
+		char map = SPACE;
+		switch(coordinate) {
+			case JAVA: // Y=0-9, X=0-9
+				map = x.toString().charAt(0);
+				break;
+			case SUDOKU: // Y=A-I, X=1-9
+				x++;
+				map = x.toString().charAt(0);
+				break;
+			case CHESS: // Y=9-1, X=A-I
+				map = (char)(ALPHA + x);
+				break;
+		}
+		return map;
+	}
+
+	// Converts JAVA y, x indexes to coordinate system
+	String coordinates(int y, int x) {
+		return "[" + coordinateY(y) + "," + coordinateX(x) +"]";
+	}
+
+	// Converts the coordinate system y to JAVA index
+	char readY(char y) {
+		char map = SPACE;
+		switch(coordinate) {
+			case JAVA: // Y=0-9, X=0-9
+				map = y;
+				break;
+			case SUDOKU: // Y=A-I, X=1-9
+				map = y;
+				map -= ALPHA - ZERO;
+				break;
+			case CHESS: // Y=9-1, X=A-I
+				map = ZERO;
+				map += MAX;
+				map -= y;
+				map += ZERO;
+				break;
+		}
+		return map;
+	}
+
+	// Converts the coordinate system x to JAVA index
+	char readX(char x) {
+		char map = SPACE;
+		switch(coordinate) {
+			case JAVA: // Y=0-9, X=0-9
+				map = x;
+				break;
+			case SUDOKU: // Y=A-I, X=1-9
+				map = x;
+				map--;
+				break;
+			case CHESS: // Y=9-1, X=A-I
+				map = x;
+				map -= ALPHA - ZERO;
+				break;
+		}
+		return map;
+	}
+
     int blockBase(int i) {
 		int base = NOT_FOUND;
 		if(i != NOT_FOUND)
@@ -90,42 +233,42 @@ class Sudoku {
 		return base;
 	}
 
-	int pairException(int i, int exception) {
+	int nextException(int i, int exception) {
 		int base = blockBase(i);
-		for(int pair = base; pair < base + MIN; pair++) {
-			if(pair == i)
+		for(int other = base; other < base + MIN; other++) {
+			if(other == i)
 				continue;
-			if(pair == exception)
+			if(other == exception)
 				continue;
-			return pair;
+			return other;
 		}
 		return NOT_FOUND;
 	}
 
-	int pairException(int i) {
-		return pairException(i, NOT_FOUND);
+	int next(int i) {
+		return nextException(i, NOT_FOUND);
 	}
 
-	int blockPairException(int i, int exception) {
+	int blockNextException(int i, int exception) {
 		int base = blockBase(i);
-		int blockPair = NOT_FOUND;
-		for(int pair = 0; pair < MAX; pair += MIN) {
-			if(pair == base)
+		for(int next = 0; next < MAX; next += MIN) {
+			if(next == base)
 				continue;
-			if(pair == exception)
+			if(next == exception)
 				continue;
-			blockPair = pair;
-			break;
+			return next;
 		}
-		return blockPair;
+		return NOT_FOUND;
 	}
 
-	int blockPairException(int i) {
-		return blockPairException(i, NOT_FOUND);
+	int blockNext(int i) {
+		return blockNextException(i, NOT_FOUND);
 	}
 
 	// Count the existing numbers omitting the exception
-    int countAreaException(Area area, int row, int column, int exception) {
+    int countAreaException(Area area, int row, int column, int exception, int depth) {
+		if(depth != QUIET)
+			log(depth++, "countAreaException(area = " + area + ", row = " + row + ", column = " + column + ", exception = " + exception + ")");
         int counter = 0;
         switch(area) {
             case ALL:
@@ -170,17 +313,19 @@ class Sudoku {
 						counter++;
                 break;
 		}
+		if(depth != QUIET)
+			var(depth, "counter", counter);
         return counter;
     }
 
 	// Count without exception
-    int countArea(Area area, int row, int column) {
-		return countAreaException(area, row, column, MISSING);
+    int countArea(Area area, int row, int column, int depth) {
+		return countAreaException(area, row, column, MISSING, depth);
 	}
 
 	// Count all cells
-    int count(Area area) {
-		return countArea(area, 0, 0);
+    int count(Area area, int depth) {
+		return countArea(area, 0, 0, depth);
 	}
 
     int existsArea(Area area, int row, int column, int number, int depth) {
@@ -227,40 +372,62 @@ class Sudoku {
 		return exists;
 	}
 
-    void printHorizontalLine(boolean showCounter) {
-        System.out.print(PLUS);
+    void printDash(char character) {
+        System.out.print(EMPTY + DASH + character);
+	}
+
+    void printSpace(char character) {
+        System.out.print(EMPTY + SPACE + character);
+	}
+
+    void printSpace(int number) {
+        System.out.print(EMPTY + SPACE + number);
+	}
+
+    void printHorizontalLine(char prefix, boolean showCounter) {
+        System.out.print(prefix);
+        printSpace(PLUS);
         for(int y = 0; y < MIN; y++) {
             for(int x = 0; x < MIN; x++)
-                System.out.print(DASH);
-            System.out.print(PLUS);
+                printDash(DASH);
+            printDash(PLUS);
         }
         if(showCounter)
-            System.out.print(" (" + count(Area.ALL) + ")");
+            System.out.print(" (" + count(Area.ALL, QUIET) + ")");
         System.out.println();
     }
 
     void print() {
+		System.out.print(SPACE);
+		for(int x = 0; x < MAX; x++) {
+			if(x % MIN == 0)
+				printSpace(SPACE);
+			printSpace(coordinateX(x));
+		}
+		System.out.println();
         for(int y = 0; y < MAX; y++) {
             if((y % MIN) == 0)
-                printHorizontalLine(false);
+				printHorizontalLine(SPACE, false);
+			System.out.print(coordinateY(y));
             for(int x = 0; x < MAX; x++) {
                 if((x % MIN) == 0)
-                    System.out.print(PIPE);
+                    printSpace(PIPE);
                 if(s[y][x][FACE] != MISSING)
-                    System.out.print(s[y][x][FACE]);
+                    printSpace(s[y][x][FACE]);
                 else
-                     System.out.print(SPACE);
+                     printSpace(SPACE);
             }
-            System.out.println(PIPE);
+            printSpace(PIPE);
+			System.out.println();
         }
-        printHorizontalLine(true);
+        printHorizontalLine(SPACE,true);
 		if(analyze)
 			analysis();
     }
 
     void printMissing(int row, int column) {
 		if(debug) {
-			System.out.print("M["+row + ","+column+"]");
+			System.out.print("Missing[" + coordinateY(row) + "," + coordinateX(column) + "]");
 			int counter = 0;
 			for(int i = 1; i <= MAX; i++) {
 				System.out.print(SPACE);
@@ -271,10 +438,15 @@ class Sudoku {
 				else
 					System.out.print(SPACE);
 			}
-			if(counter == 1)
-				System.out.println(" << SINGLE >>");
-			else
-				System.out.println();
+			switch(counter) {
+				case 1:
+					System.out.print(" << SINGLE >>");
+					break;
+				case 2:
+					System.out.print(" << PAIR >>");
+					break;
+			}
+			System.out.println();
 		}
 	}
 
@@ -309,7 +481,7 @@ class Sudoku {
                     if(row.charAt(x) == SPACE)
                         setNumber(y, x, 0);
                     else
-                        setNumber(y, x, row.charAt(x) - '0');
+                        setNumber(y, x, row.charAt(x) - ZERO);
                 else
 					setNumber(y, x, 0);
         }
@@ -324,120 +496,129 @@ class Sudoku {
 				case ALL:
 					for(int y = 0; y < MAX; y++)
 						for(int x = 0; x < MAX; x++)
-							s[y][x][number] = MISSING;
+							if(s[y][x][number] != MISSING)
+								s[y][x][number] = MISSING;
 					break;
 				case BLOCK:
 					for(int i = 0, y = blockBase(row); i < MIN; i++, y++)
 						for(int j = 0, x = blockBase(column); j < MIN; j++, x++)
-							s[y][x][number] = MISSING;
+							if(s[y][x][number] != MISSING)
+								s[y][x][number] = MISSING;
 					break;
 				case HORIZONTAL:
 					for(int x = 0; x < MAX; x++)
-						s[row][x][number] = MISSING;
+						if(s[row][x][number] != MISSING)
+							s[row][x][number] = MISSING;
 					break;
 				case VERTICAL:
 					for(int y = 0; y < MAX; y++)
-						s[y][column][number] = MISSING ;
+						if(s[y][column][number] != MISSING)
+							s[y][column][number] = MISSING;
+					break;
+				case NUMBER:
+					for(int n = 1; n <= MAX; n++)
+						if(s[row][column][n] != MISSING)
+							s[row][column][n] = MISSING;
 					break;
 			}
 	}
 
-    void unsetMissing(int row, int column, int number) {
+    void unset(int row, int column, int number) {
 		if(number != MISSING) {
 			unsetArea(Area.BLOCK, row, column, number);
 			unsetArea(Area.HORIZONTAL, row, column, number);
 			unsetArea(Area.VERTICAL, row, column, number);
+			unsetArea(Area.NUMBER, row, column, number);
 		}
 	}
 
     int setNumber(int row, int column, int number) {
 		s[row][column][FACE] = number;
 		if(number != MISSING)
-			unsetMissing(row, column, number);
+			unset(row, column, number);
 		return 1; // added
 	}
 
     // Set the last missing number when all other are present
 	// 
-	//      column
-	//     +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	// row |1?|X |X |  |  |  |  |  |  |  |1?|X |X |X |X |X |X |X |X |  |1?|  |  |  |  |  |  |  |  |
-	//     +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	//     |X |X |X |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |X |  |  |  |  |  |  |  |  |
-	//     +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	//     |X |X |X |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |X |  |  |  |  |  |  |  |  |
-	//     +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	//      Example Block                 Example Horizontal            Example Vertical
-    int setSingle(int row, int column, int number, int depth) {
-		log(depth++, "setSingle(row = " + row + ", column = " + column + ", number = " + number + ")");
+	//     B  B  B                                                      V
+	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	// B | ?| X| X|  |  |  |  |  |  | H | ?| X| X| X| X| X| X| X| X|  | ?|  |  |  |  |  |  |  |  |
+	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	// B | X| X| X|  |  |  |  |  |  |   |  |  |  |  |  |  |  |  |  |  | X|  |  |  |  |  |  |  |  |
+	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	// B | X| X| X|  |  |  |  |  |  |   |  |  |  |  |  |  |  |  |  |  | X|  |  |  |  |  |  |  |  |
+	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	//    Example Block                  Example Horizontal            Example Vertical
+    int setNakedSingle(int row, int column, int number, int depth) {
+		log(depth++, "setNakedSingle(row = " + row + ", column = " + column + ", number = " + number + ")");
 		int added = 0;
-        if((s[row][column][FACE] == MISSING) && // empty?
-           (s[row][column][number] != MISSING)) { // possible position?
-			if((countAreaException(Area.BLOCK, row, column, number) == MAX - 1) || // in-block
-			   (countAreaException(Area.HORIZONTAL, row, column, number) == MAX - 1) || // horizontally
-			   (countAreaException(Area.VERTICAL, row, column, number) == MAX - 1) || // vertically
-			   (countAreaException(Area.NUMBER, row, column, number) == 0)) // in-depth
-				added += setNumber(row, column, number);
-		}
+		if((countAreaException(Area.BLOCK, row, column, number, depth) == MAX - 1) || // last one in-block
+		   (countAreaException(Area.HORIZONTAL, row, column, number, depth) == MAX - 1) || // last one horizontally
+		   (countAreaException(Area.VERTICAL, row, column, number, depth) == MAX - 1) || // last one vertically
+		   (countAreaException(Area.NUMBER, row, column, number, depth) == 0)) // all others are not allowed here
+			added += setNumber(row, column, number);
 		var(depth, "added", added);
+		if(view && (added > 0))
+			System.out.println(Method.NAKED_SINGLE.name() + " >> " + number + " @ " + coordinates(row, column));
 		return added;
     }
 
 	// Check if the missing number is allowed to be put in the cell.
 	// The method should be called twice in order to verify the position.
-	//        j         jNext     jPair 
-	//       +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	// i     |1?|  |  |  |  |  |  |  |  |  |1?|  |  |  |  |  |  |  |  |  |1?|  |  |  |  |  |  |  |  |
-	//       +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	// iNext |  |  |  |  |  |  |  |  |  |  |  |  |  |1 |  |  |  |  |  |  |  |  |  |1 |  |  |  |  |  |
-	//       +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	// iPair |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |1 |  |  |  |X |X |X |  |  |  |X |X |X |
-	//       +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	//                                      Example 1                     Example 2
-    boolean missing(Area area, int i, int j, int number, int depth) {
-		log(depth++, "missing(area = " + area + ", i = " + i + ", j = " + j + ", number = " + number + ")");
+	//           j        jFirst   jSecond 
+	//         +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	// i       | ?|  |  |  |  |  |  |  |  |  | ?|  |  |  |  |  |  |  |  |  | ?|  |  |  |  |  |  |  |  |
+	//         +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	// iFirst  |  |  |  |  |  |  |  |  |  |  |  |  |  | 1|  |  |  |  |  |  |  |  |  | 1|  |  |  |  |  |
+	//         +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	// iSecond |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 1|  |  |  | X| X| X|  |  |  | X| X| X|
+	//         +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
+	//                                        Example 1                     Example 2
+    boolean missingArea(Area area, int i, int j, int number, int depth) {
+		log(depth++, "missingArea(area = " + area + ", i = " + i + ", j = " + j + ", number = " + number + ")");
 		boolean allowed = false;
 		Area blockArea = (area == Area.HORIZONTAL)? Area.MINI_HORIZONTAL: Area.MINI_VERTICAL;
-		int jNext = (area == Area.HORIZONTAL)? blockPairException(j): blockPairException(i);
-		var(depth, "jNext", jNext);
-		int jPair = (area == Area.HORIZONTAL)? blockPairException(j, jNext): blockPairException(i, jNext);
-		var(depth, "jPair", jPair);
-		int count_jNext = (area == Area.HORIZONTAL)? countArea(blockArea, i, jNext): countArea(blockArea, j, jNext); // 1 x 3
-		var(depth, "count_jNext", count_jNext);
-		int count_jPair = (area == Area.HORIZONTAL)? countArea(blockArea, i, jPair): countArea(blockArea, j, jPair); // 1 x 3
-		var(depth, "count_jPair", count_jPair);
-		if((count_jNext == MIN) && (count_jPair == MIN))
+		int jFirst = (area == Area.HORIZONTAL)? blockNext(j): blockNext(i);
+		var(depth, "jFirst", jFirst);
+		int jSecond = (area == Area.HORIZONTAL)? blockNextException(j, jFirst): blockNextException(i, jFirst);
+		var(depth, "jSecond", jSecond);
+		int count_jFirst = (area == Area.HORIZONTAL)? countArea(blockArea, i, jFirst, depth): countArea(blockArea, j, jFirst, depth); // 1 x 3
+		var(depth, "count_jFirst", count_jFirst);
+		int count_jSecond = (area == Area.HORIZONTAL)? countArea(blockArea, i, jSecond, depth): countArea(blockArea, j, jSecond, depth); // 1 x 3
+		var(depth, "count_jSecond", count_jSecond);
+		if((count_jFirst == MIN) && (count_jSecond == MIN))
 			allowed = true;
 		else {
-			int iNext = (area == Area.HORIZONTAL)? pairException(i): pairException(j);
-			var(depth, "iNext", iNext);
-			int iPair = (area == Area.HORIZONTAL)? pairException(i, iNext): pairException(j, iNext);
-			var(depth, "iPair", iPair);
-			int exists_iNext = (area == Area.HORIZONTAL)? blockBase(existsArea(area, iNext, j, number, depth)):
-				blockBase(existsArea(area, i, iNext, number, depth)); // 1 x 9
-			var(depth, "exists_iNext", exists_iNext);
-			int exists_iPair = (area == Area.HORIZONTAL)? blockBase(existsArea(area, iPair, j, number, depth)):
-				blockBase(existsArea(area, i, iPair, number, depth)); // 1 x 9
-			var(depth, "exists_iPair", exists_iPair);
-			if(((exists_iNext == jNext) && (exists_iPair == jPair)) ||
-			   ((exists_iNext == jPair) && (exists_iPair == jNext)))
+			int iFirst = (area == Area.HORIZONTAL)? next(i): next(j);
+			var(depth, "iFirst", iFirst);
+			int iSecond = (area == Area.HORIZONTAL)? nextException(i, iFirst): nextException(j, iFirst);
+			var(depth, "iSecond", iSecond);
+			int exists_iFirst = (area == Area.HORIZONTAL)? blockBase(existsArea(area, iFirst, j, number, depth)):
+				blockBase(existsArea(area, i, iFirst, number, depth)); // 1 x 9
+			var(depth, "exists_iFirst", exists_iFirst);
+			int exists_iSecond = (area == Area.HORIZONTAL)? blockBase(existsArea(area, iSecond, j, number, depth)):
+				blockBase(existsArea(area, i, iSecond, number, depth)); // 1 x 9
+			var(depth, "exists_iSecond", exists_iSecond);
+			if(((exists_iFirst == jFirst) && (exists_iSecond == jSecond)) ||
+			   ((exists_iFirst == jSecond) && (exists_iSecond == jFirst)))
 				allowed = true;
 			else {
-				int count_iNext_jNext = countArea(blockArea, iNext, jNext); // 1 x 3
-				var(depth, "count_iNext_jNext", count_iNext_jNext);
-				int count_iNext_jPair = countArea(blockArea, iNext, jPair); // 1 x 3
-				var(depth, "count_iNext_jPair", count_iNext_jPair);
-				int count_iPair_jNext = countArea(blockArea, iPair, jNext); // 1 x 3
-				var(depth, "count_iPair_jNext", count_iPair_jNext);
-				int count_iPair_jPair = countArea(blockArea, iPair, jPair); // 1 x 3
-				var(depth, "count_iPair_jPair", count_iPair_jPair);
-				if((exists_iNext == NOT_FOUND) &&
-				  (((exists_iPair == jNext) && (count_jPair == MIN) && (count_iPair_jPair == MIN)) ||
-				   ((exists_iPair == jPair) && (count_jNext == MIN) && (count_iPair_jNext == MIN))))
+				int count_iFirst_jFirst = countArea(blockArea, iFirst, jFirst, depth); // 1 x 3
+				var(depth, "count_iFirst_jFirst", count_iFirst_jFirst);
+				int count_iFirst_jSecond = countArea(blockArea, iFirst, jSecond, depth); // 1 x 3
+				var(depth, "count_iFirst_jSecond", count_iFirst_jSecond);
+				int count_iSecond_jFirst = countArea(blockArea, iSecond, jFirst, depth); // 1 x 3
+				var(depth, "count_iSecond_jFirst", count_iSecond_jFirst);
+				int count_iSecond_jSecond = countArea(blockArea, iSecond, jSecond, depth); // 1 x 3
+				var(depth, "count_iSecond_jSecond", count_iSecond_jSecond);
+				if((exists_iFirst == NOT_FOUND) &&
+				  (((exists_iSecond == jFirst) && (count_jSecond == MIN) && (count_iSecond_jSecond == MIN)) ||
+				   ((exists_iSecond == jSecond) && (count_jFirst == MIN) && (count_iSecond_jFirst == MIN))))
 					allowed = true;
-				else if((exists_iPair == NOT_FOUND) &&
-				  (((exists_iNext == jNext) && (count_jPair == MIN) && (count_iNext_jPair == MIN)) ||
-				   ((exists_iNext == jPair) && (count_jNext == MIN) && (count_iNext_jNext == MIN))))
+				else if((exists_iSecond == NOT_FOUND) &&
+				  (((exists_iFirst == jFirst) && (count_jSecond == MIN) && (count_iFirst_jSecond == MIN)) ||
+				   ((exists_iFirst == jSecond) && (count_jFirst == MIN) && (count_iFirst_jFirst == MIN))))
 					allowed = true;
 			}
 		}
@@ -445,66 +626,65 @@ class Sudoku {
 		return allowed;
 	}
 
-    // Set the missing number when
+    // Set the hidden single number when
 	// 1. all surrounding same numbers are present
 	// 2. all surrounding 3 cell areas are blocked
     int setMissing(int row, int column, int number, int depth) {
 		log(depth++, "setMissing(row = " + row + ", column = " + column + ", number = " + number + ")");
 		int added = 0;
-        if((s[row][column][FACE] == MISSING) && // empty?
-          (s[row][column][number] == number) && // possible position?
-		  (existsArea(Area.BLOCK, row, column, number, depth) == NOT_FOUND) && // 3 x 3
+		if((existsArea(Area.BLOCK, row, column, number, depth) == NOT_FOUND) && // 3 x 3
           (existsArea(Area.HORIZONTAL, row, column, number, depth) == NOT_FOUND) && // 1 x 9
           (existsArea(Area.VERTICAL, row, column, number, depth) == NOT_FOUND) && // 9 x 1
-		  missing(Area.HORIZONTAL, row, column, number, depth) && // 2 x 9
-		  missing(Area.VERTICAL, row, column, number, depth)) // 9 x 2
+		  missingArea(Area.HORIZONTAL, row, column, number, depth) && // 2 x 9
+		  missingArea(Area.VERTICAL, row, column, number, depth)) // 9 x 2
 			added += setNumber(row, column, number);
 		var(depth, "added", added);
+		if(view && (added > 0))
+			System.out.println(Method.MISSING.name() + " >> " + number + " @ " + coordinates(row, column));
 		return added;
     }
 
 	// Set the missing number if the cell is the only allowed position
-	int setAllowed(int row, int column, int number, int depth) {
-		log(depth++, "setAllowed(row = " + row + ", column = " + column + ", number = " + number + ")");
+	int setHiddenSingle(int row, int column, int number, int depth) {
+		log(depth++, "setHiddenSingle(row = " + row + ", column = " + column + ", number = " + number + ")");
 		int added = 0;
-        if((s[row][column][FACE] == MISSING) && // empty?
-          (s[row][column][number] == number)) { // possible position?
-			for(Area area: Area.values()) {
-				int notAllowed = 0;
-				switch(area) {
-					case BLOCK:
-						for(int i = 0, y = blockBase(row); i < MIN; i++, y++) {
-							for(int j = 0, x = blockBase(column); j < MIN; j++, x++) {
-								if(((x != column) || (y != row)) &&
-								   ((s[y][x][FACE] != MISSING) ||
-								    (existsArea(Area.HORIZONTAL, y, x, number, depth) != NOT_FOUND) ||
-								    (existsArea(Area.VERTICAL, y, x, number, depth) != NOT_FOUND)))
-									notAllowed++;
-							}
+		for(Area area: Area.values()) {
+			int notAllowed = 0;
+			switch(area) {
+				case BLOCK:
+					for(int i = 0, y = blockBase(row); i < MIN; i++, y++) {
+						for(int j = 0, x = blockBase(column); j < MIN; j++, x++) {
+							if(((x != column) || (y != row)) &&
+							   ((s[y][x][FACE] != MISSING) ||
+								(existsArea(Area.HORIZONTAL, y, x, number, depth) != NOT_FOUND) ||
+								(existsArea(Area.VERTICAL, y, x, number, depth) != NOT_FOUND)))
+								notAllowed++;
 						}
-						break;
-					case HORIZONTAL:
-						for(int x = 0; x < MIN; x++)
-							if((x != column) &&
-							   ((s[row][x][FACE] != MISSING) ||
-								(existsArea(Area.VERTICAL, row, x, number, depth) != NOT_FOUND)))
-								notAllowed++;
-						break;
-					case VERTICAL:
-						for(int y = 0; y < MIN; y++)
-							if((y != row) &&
-							   ((s[y][column][FACE] != MISSING) ||
-							    (existsArea(Area.HORIZONTAL, y, column, number, depth) != NOT_FOUND)))
-								notAllowed++;
-						break;
-				}
-				if(notAllowed == MAX - 1) {
-					added += setNumber(row, column, number);
+					}
 					break;
-				}
+				case HORIZONTAL:
+					for(int x = 0; x < MIN; x++)
+						if((x != column) &&
+						   ((s[row][x][FACE] != MISSING) ||
+							(existsArea(Area.VERTICAL, row, x, number, depth) != NOT_FOUND)))
+							notAllowed++;
+					break;
+				case VERTICAL:
+					for(int y = 0; y < MIN; y++)
+						if((y != row) &&
+						   ((s[y][column][FACE] != MISSING) ||
+							(existsArea(Area.HORIZONTAL, y, column, number, depth) != NOT_FOUND)))
+							notAllowed++;
+					break;
+			}
+			if(notAllowed == MAX - 1) {
+				added += setNumber(row, column, number);
+				break;
 			}
 		}
 		var(depth, "added", added);
+		if(view && (added > 0))
+			System.out.println(Method.HIDDEN_SINGLE.name() + " >> " + number + " @ " + coordinates(row, column));
 		return added;
 	}
 
@@ -512,34 +692,37 @@ class Sudoku {
 		int depth = 0;
 		log(depth++, "solution()");
         startTime = System.nanoTime();
-		String go = "";
-		int counter = count(Area.ALL);
-        int added = 0;
-        while((counter < TOTAL) || (added > 0) || (goes.size() > 0)) {
+		if(methodList.size() == 0)
+			for(Method method: Method.values())
+				methodList.add(method);
+		String go = EMPTY;
+		int counter = count(Area.ALL, depth);
+        int added = TOTAL;
+        while((added > 0) || (goList.size() > 0)) {
             passages++;
             added = 0;
-			if(goes.size() > 0) {
-				go = goes.get(0);
-				goes.remove(0);
+			if(goList.size() > 0) {
+				go = goList.get(0);
+				goList.remove(0);
 			}
             for(int y = 0; y < MAX; y++) {
 				if(go.length() > 0)
-					y = go.charAt(0) - '0';
+					y = go.charAt(0) - ZERO;
                 for(int x = 0; x < MAX; x++) {
 					if(go.length() > 1)
-						x = go.charAt(1) - '0';
+						x = go.charAt(1) - ZERO;
 					printMissing(y, x);
 					if(s[y][x][FACE] == MISSING) { // empty?
 						for(int number = 1; number <= MAX; number++) {
 							if(go.length() > 2)
-								number = go.charAt(2) - '0';
+								number = go.charAt(2) - ZERO;
 							if(s[y][x][number] == number) { // possible position?
-								if(isActive.contains("setSingle"))
-									added += setSingle(y, x, number, depth);
-								if(isActive.contains("setMissing"))
+								if(methodList.contains(Method.NAKED_SINGLE))
+									added += setNakedSingle(y, x, number, depth);
+								if(methodList.contains(Method.MISSING))
 								   added += setMissing(y, x, number, depth);
-								if(isActive.contains("setAllowed"))
-									added += setAllowed(y, x, number, depth);
+								if(methodList.contains(Method.HIDDEN_SINGLE))
+									added += setHiddenSingle(y, x, number, depth);
 							}
 							if(go.length() > 0)
 								break;
@@ -563,7 +746,7 @@ class Sudoku {
 				}
 			}
 			counter += added;
-			if((counter == TOTAL) || (goes.size() == 0))
+			if((counter == TOTAL) || ((go.length() > 0) && (goList.size() == 0)))
 				break;
         }
         endTime = System.nanoTime();
@@ -575,7 +758,7 @@ class Sudoku {
     }
 
 	String dilute(String dense) {
-		String thin = "";
+		String thin = EMPTY;
 		for(int i = 0; i < dense.length(); i++) {
 			if(i != 0)
 				thin += SPACE;
@@ -616,7 +799,7 @@ class Sudoku {
     }
 
     void analysis() {
-		boolean debugMemory = debug;
+		boolean memory = debug;
 		debug = true;
 		System.out.println();
 		System.out.println(dilute(Area.HORIZONTAL));
@@ -634,46 +817,48 @@ class Sudoku {
                 if(s[y][x][FACE] == MISSING)
                     printMissing(y, x);
 		}
-		debug = debugMemory;
+		debug = memory;
     }
-
-    void activate(String method) {
-		if(isActive.size() == methods.length)
-			isActive.clear();
-		if(!isActive.contains(method))
-			isActive.add(method);
-	}
 
 	public static void help() {
 		System.out.println("Sudoku.java by Kostas Dimou @ 2019");
 		System.out.println();
 		System.out.println("Usage:");
-		System.out.println("    Sudoku [--analyze] [--debug] [--go YXN] [--help] [--interactive] \\");
-		System.out.println("           [--method METHOD] [--solve] [--view]");
+		System.out.println("    Sudoku [--analyze] [--coordinates SYSTEM] [--debug] [--go YXN] [--help] \\");
+		System.out.println("           [--interactive] [--method METHOD] [--solve] [--view]");
 		System.out.println();
 		System.out.println("Where:");
 		System.out.println("    -a or --analyze:");
 		System.out.println("        Displays the posible positions for each number.");
+		System.out.println("    -c or --coordinates:");
+		System.out.println("        Selects the coordinates system for the Sudoku matrix.");
+		System.out.println("        Available systems:");
+		System.out.println("            CHESS:  Y=9-1, X=A-I");
+		System.out.println("            JAVA:   Y=0-9, X=0-9 (default)");
+		System.out.println("            SUDOKU: Y=A-I, X=1-9");
 		System.out.println("    -d or --debug:");
 		System.out.println("        Activates the debugging mode.");
 		System.out.println("    -g or --go:");
 		System.out.println("        Try a specific coordinate and/or a specific number.");
-		System.out.println("        Example: --go 419: row = 4, column = 1, number = 9.");
+		System.out.println("        Example:");
+		System.out.println("            --go 419: row = 4, column = 1, number = 9.");
+		System.out.println("            --chess --go 5A9: row = 4, column = 1, number = 9.");
 		System.out.println("    -h or --help:");
 		System.out.println("        Displays this help message and exits.");
 		System.out.println("    -i or --interactive:");
 		System.out.println("        Displays a prompt for each imput row and pauses on each passage.");
 		System.out.println("        For each missing number you can provide a zero (0) or a space ( ).");
-		System.out.println("        Example: ROW[0] = 57 9  1");
-		System.out.println("        Example: ROW[1] = 01030005");
-		System.out.println("        Example: ROW[3] =  2070 0 9");
+		System.out.println("        Example:");
+		System.out.println("            ROW[0] = 57 9  1");
+		System.out.println("            ROW[1] = 01030005");
+		System.out.println("            ROW[3] =  2070 0 9");
 		System.out.println("    -m or --method:");
 		System.out.println("        Calls the equivalent method for solving the Sudoku.");
 		System.out.println("        By default all methods are called.");
 		System.out.println("        Available methods:");
-		System.out.println("        1. setSingle");
-		System.out.println("        2. setMissing");
-		System.out.println("        3. setAllowed");
+		System.out.println("            HIDDEN_SINGLE");
+		System.out.println("            MISSING");
+		System.out.println("            NAKED_SINGLE");
 		System.out.println("    -s or --solve:");
 		System.out.println("        Solves the Sudoku by using all possible methods.");
 		System.out.println("    -v or --view:");
@@ -682,29 +867,29 @@ class Sudoku {
 		System.out.println("Examples:");
 		System.out.println("    java Sudoku --help");
 		System.out.println("    java Sudoku --interactive");
-		System.out.println("    java Sudoku < Sudoku.0002");
+		System.out.println("    java Sudoku --coordinate sudoku < Sudoku.0002");
 		System.out.println("    java Sudoku --analyze < Sudoku.0002");
 		System.out.println("    java Sudoku --solve < Sudoku.0002");
 		System.out.println("    java Sudoku -s --view < Sudoku.0002");
 		System.out.println("    java Sudoku -s --go 419 --debug < Sudoku.0006");
-		System.out.println("    java Sudoku -s --method setSingle < Sudoku.0000");
-		System.out.println("    java Sudoku -s -m setSingle -m setMissing < Sudoku.0001");
+		System.out.println("    java Sudoku -s --method NAKED_SINGLE < Sudoku.0000");
+		System.out.println("    java Sudoku -s -m NAKED_SINGLE -m MISSING < Sudoku.0001");
 	}
 
     public static void main(String[] args) {
-        Sudoku sudoku = new Sudoku();
-        String next = "";
+        Sudoku3 sudoku = new Sudoku3();
+        String value = EMPTY;
         if(args.length > 0)
-			for(String argument:args) {
-				if(next.length() == 0) {
+			for(String argument: args) {
+				if(value.length() == 0) {
 					if(argument.equals("-a") || argument.equals("--analyze"))
 						sudoku.setAnalyze();
-					if(argument.equals("-d") || argument.equals("--debug"))
+					else if(argument.equals("-c") || argument.equals("--coordinate"))
+						value = "-c";
+					else if(argument.equals("-d") || argument.equals("--debug"))
 						sudoku.setDebug();
-					else if(argument.equals("-s") || argument.equals("--solve"))
-						sudoku.setSolve();
 					else if(argument.equals("-g") || argument.equals("--go"))
-						next = argument;
+						value = "-g";
 					else if(argument.equals("-h") || argument.equals("--help")) {
 						sudoku.help();
 						return;
@@ -712,16 +897,28 @@ class Sudoku {
 					else if(argument.equals("-i") || argument.equals("--interactive"))
 						sudoku.setInteractive();
 					else if(argument.equals("-m") || argument.equals("--method"))
-						next = argument;
+						value = "-m";
+					else if(argument.equals("-s") || argument.equals("--solve"))
+						sudoku.setSolve();
 					else if(argument.equals("-v") || argument.equals("--view"))
 						sudoku.setView();
+					else {
+						System.out.println("Unsupported flag: " + argument);
+						return;
+					}
 				} else
-					if(next.equals("-g") || next.equals("--go")) {
-						sudoku.setGo(argument);
-						next = "";
-					} else if(next.equals("-m") || next.equals("--method")) {
-						sudoku.activate(argument);
-						next = "";
+					if(value.equals("-c")) {
+						if(!sudoku.setCoordinate(argument))
+							return;
+						value = EMPTY;
+					} else if(value.equals("-g")) {
+						if(!sudoku.setGo(argument))
+							return;
+						value = EMPTY;
+					} else if(value.equals("-m")) {
+						if(!sudoku.setActive(argument))
+							return;
+						value = EMPTY;
 					}
 			}
         sudoku.run();
