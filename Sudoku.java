@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
-class Sudoku3 {
+class Sudoku {
     private static final int MAX = 9;
     private static final int TOTAL = MAX * MAX;
     private static final int MIN = MAX / 3;
@@ -877,7 +877,7 @@ class Sudoku3 {
 	}
 
     public static void main(String[] args) {
-        Sudoku3 sudoku = new Sudoku3();
+        Sudoku sudoku = new Sudoku();
         String value = EMPTY;
         if(args.length > 0)
 			for(String argument: args) {
