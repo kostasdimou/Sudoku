@@ -1,27 +1,17 @@
 import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 class Sudoku {
     private static final int MAX = 9;
     private static final int TOTAL = MAX * MAX;
-    private static final int MIN = MAX / 3;
     private static final int FACE = 0;
-    private static final int MISSING = 0;
-    private static final int NOT_FOUND = -1;
     private static final int QUIET = -1;
     private static final char DASH = '-';
     private static final char PIPE = '|';
     private static final char PLUS = '+';
-    private static final char SPACE = ' ';
     private static final char ZERO = '0';
     private static final char ALPHA = 'A';
-    private static final String EMPTY = "";
-	private static final String[] MULTIPLE = {"NOTHING", "SINGLE", "PAIR", "TRIPLE"};
-	private static final List<Integer> allNumbers =
-		Stream.iterate(1, n -> n + 1).limit(MAX).collect(Collectors.toList());
 
 	private static boolean analyze = false;
 	private static boolean debug = false;
@@ -32,20 +22,10 @@ class Sudoku {
     private int passages = 0;
     private long startTime = 0;
     private long endTime = 0;
-	private Coordinate coordinate = Coordinate.JAVA;
+	private static final Coordinate coordinate = Coordinate.getInstance();
 	private List<Method> methodList = new ArrayList<Method>();
 	private List<String> goList = new ArrayList<String>();
     private Scanner in = new Scanner(System.in);
-
-	public enum Area {
-		POINT, // 1 x 1
-		BLOCK_HORIZONTAL, // 1 x 3
-		BLOCK_VERTICAL, // 3 x 1
-		HORIZONTAL, // 1 x 9
-		VERTICAL, // 9 x 1
-		BLOCK, // 3 x 3
-		ALL // 9 x 9
-	}
 
 	public enum Method {
 		NAKED_SINGLE,
@@ -54,217 +34,11 @@ class Sudoku {
 		NAKED_PAIR
 	};
 
-	public enum Coordinate {
-		CHESS, // Y=9-1, X=A-I
-		JAVA, // Y=0-9, X=0-9 (default)
-		SUDOKU // Y=A-I, X=1-9
-	};
-
-	class Position {
-		int y;
-		int x;
-
-		Position() {
-			y = NOT_FOUND;
-			x = NOT_FOUND;
-		}
-
-		Position(int row, int column) {
-			y = row;
-			x = column;
-		}
-
-		Position(Position point) {
-			y = point.y;
-			x = point.x;
-		}
-
-		void print(int depth) {
-			System.out.print(margin(depth) + "[" + coordinateY(y) + "," + coordinateX(x) + "]");
-		}
-
-		void println(int depth) {
-			print(depth);
-			System.out.println();
-		}
-
-		boolean equals(Position point) {
-			if(y == point.y)
-				return (x == point.x);
-			return false;
-		}
-
-		Position base(Position point) {
-			Position p = new Position(point.y / MIN * MIN, point.x / MIN * MIN);
-			return p;
-		}
-
-		Position base() {
-			return base(this);
-		}
-	}
-
-	class Cell {
-		Position point;
-		int number;
-		List<Integer> candidates = allNumbers;
-
-		Cell() {
-			number = MISSING;
-		}
-
-		Cell(int number) {
-			this.number = number;
-		}
-
-		Cell(Position point, int number) {
-			this.point = point;
-			this.number = number;
-		}
-
-		boolean equals(Cell cell) {
-			if(point.equals(cell.point))
-				return (number == cell.number);
-			return false;
-		}
-
-		void remove(int candidate) {
-			int index = candidates.indexOf(candidate);
-			if(index >= 0)
-				candidates.remove(index);
-		}
-
-		int set(int number) {
-			this.number = number;
-			candidates.clear();
-		}
-
-		void print(int depth) {
-			System.out.print(margin(depth) + "Cell");
-			point.print(0);
-			System.out.print(EMPTY + SPACE + number);
-		}
-
-		void println(int depth) {
-			print(depth);
-			System.out.println();
-		}
-
-		void printMissing() {
-			if(candidates.size() > 0) {
-				System.out.print("Missing");
-			   	point.print(0);
-				int counter = 0;
-				for(int n = 1; n <= MAX; n++) {
-					System.out.print(SPACE);
-					if(candidates.indexOf(n) >= 0) {
-						System.out.print(n);
-						counter++;
-					}
-					else
-						System.out.print(SPACE);
-				}
-				if((counter > 0) && (counter < MULTIPLE.length))
-					System.out.print(" << " + MULTIPLE[counter] + " >>");
-				System.out.println();
-			}
-		}
-	}
-
-	class Matrix {
-		private Cell[][] cellList = new Cell[MAX][MAX]; // [rows][columns]
-
-		int set(Position point, int number) {
-			cellList[point.y][point.x].set(number);
-			remove(point, Area.HORIZONTAL, number);
-			remove(point, Area.VERTICAL, number);
-			remove(point, Area.BLOCK, number);
-		}
-
-		int remove(Position point, Area area, int candidate) {
-			Position block = point.base();
-			switch(area) {
-				case POINT:
-					cellList[point.y][point.x].remove(candidate);
-					break;
-				case BLOCK_HORIZONTAL:
-					for(int j = 0, x = block.x; j < MIN; j++, x++)
-						cellList[point.y][x].remove(candidate);
-					break;
-				case BLOCK_VERTICAL:
-					for(int i = 0, y = block.y; i < MIN; i++, y++)
-						cellList[y][point.x].remove(candidate);
-					break;
-				case BLOCK:
-					for(int i = 0, y = block.y; i < MIN; i++, y++)
-						for(int j = 0, x = block.x; j < MIN; j++, x++)
-							cellList[y][x].remove(candidate);
-					break;
-				case HORIZONTAL:
-					for(int x = 0; x < MAX; x++)
-						cellList[point.y][x].remove(candidate);
-					break;
-				case VERTICAL:
-					for(int y = 0; y < MAX; y++)
-						cellList[y][point.x].remove(candidate);
-					break;
-				case ALL:
-					for(int y = 0; y < MAX; y++)
-						for(int x = 0; x < MAX; x++)
-							cellList[y][x].remove(candidate);
-					break;
-			}
-		}
-		void printMissing(Area area) {
-			System.out.println();
-			System.out.println(printSpace(area));
-			switch(area) {
-				case BLOCK:
-					for(int blockY = 0; blockY < MIN; blockY++)
-						for(int blockX = 0; blockX < MIN; blockX++) {
-							System.out.println();
-							for(int y = 0; y < MIN; y++)
-								for(int x = 0; x < MIN; x++)
-									cellList[blockY * MIN + y][blockX * MIN + x].printMissing();
-						}
-					break;
-				case HORIZONTAL:
-					for(int y = 0; y < MAX; y++) {
-						System.out.println();
-						for(int x = 0; x < MAX; x++)
-							cellList[y][x].printMissing();
-					}
-					break;
-				case VERTICAL:
-					for(int x = 0; x < MAX; x++) {
-						System.out.println();
-						for(int y = 0; y < MAX; y++)
-							cellList[y][x].printMissing();
-					}
-					break;
-			}
-		}
-	}
-
-	Matrix matrix = new Matrix();
+	private Matrix matrix = new Matrix(MAX);
 
 	// Activates the analysis mode.
     void setAnalyze() {
 		this.analyze = true;
-	}
-
-	// Stores the coordinate system for display purposes.
-	// Internally the JAVA system is used.
-    boolean setCoordinate(String coordinateName) {
-		boolean found = false;
-		for(Coordinate coordinate: Coordinate.values())
-			if(coordinateName.equals(coordinate.name())) {
-				this.coordinate = coordinate;
-				found = true;
-			}
-		if(!found)
-			System.out.println("Unsupported coordinate: " + coordinateName);
-		return found;
 	}
 
 	// Activates the debug mode.
@@ -277,16 +51,16 @@ class Sudoku {
 		String message = "Incompatible coordinates: " + go;
 		StringBuilder goUpper = new StringBuilder(go.toUpperCase());
 		char y = goUpper.charAt(0);
-		if((y >= ALPHA) && (coordinate != Coordinate.SUDOKU)) {
+		if((y >= ALPHA) && (coordinate.getFormat() != Coordinate.Format.SUDOKU)) {
 			System.out.println(message);
 			return false;
 		}
 		char x = goUpper.charAt(1);
-		if((x >= ALPHA) && (coordinate != Coordinate.CHESS)) {
+		if((x >= ALPHA) && (coordinate.getFormat() != Coordinate.Format.CHESS)) {
 			System.out.println(message);
 			return false;
 		}
-		if(((y >= ZERO + MAX) || (x >= ZERO + MAX)) && (coordinate == Coordinate.JAVA)) {
+		if(((y >= ZERO + MAX) || (x >= ZERO + MAX)) && (coordinate.getFormat() == Coordinate.Format.JAVA)) {
 			System.out.println(message);
 			return false;
 		}
@@ -350,42 +124,6 @@ class Sudoku {
 		log(depth, message);
 	}
 
-	// Converts the internal JAVA system row to the coordinate system.
-	char coordinateY(Integer y) {
-		char map = SPACE;
-		switch(coordinate) {
-			case JAVA: // Y=0-9, X=0-9
-				map = y.toString().charAt(0);
-				break;
-			case SUDOKU: // Y=A-I, X=1-9
-				map = (char)(ALPHA + y);
-				break;
-			case CHESS: // Y=9-1, X=A-I
-				y = MAX - y;
-				map = y.toString().charAt(0);
-				break;
-		}
-		return map;
-	}
-
-	// Converts the internal JAVA system column to the coordinate system.
-	char coordinateX(Integer x) {
-		char map = SPACE;
-		switch(coordinate) {
-			case JAVA: // Y=0-9, X=0-9
-				map = x.toString().charAt(0);
-				break;
-			case SUDOKU: // Y=A-I, X=1-9
-				x++;
-				map = x.toString().charAt(0);
-				break;
-			case CHESS: // Y=9-1, X=A-I
-				map = (char)(ALPHA + x);
-				break;
-		}
-		return map;
-	}
-
 	// Returns a formated string with the coordinates.
 	String coordinates(int y, int x) {
 		return "[" + coordinateY(y) + "," + coordinateX(x) + "]";
@@ -431,25 +169,9 @@ class Sudoku {
 		return map;
 	}
 
-	int nextException(int i, int exception) {
-		int base = blockBase(i);
-		for(int other = base; other < base + MIN; other++) {
-			if(other == i)
-				continue;
-			if(other == exception)
-				continue;
-			return other;
-		}
-		return NOT_FOUND;
-	}
-
-	int next(int i) {
-		return nextException(i, NOT_FOUND);
-	}
-
 	int blockNextException(int i, int exception) {
 		int base = blockBase(i);
-		for(int next = 0; next < MAX; next += MIN) {
+		for(int next = 0; next < MAX; next += Position.getMin()) {
 			if(next == base)
 				continue;
 			if(next == exception)
@@ -470,42 +192,42 @@ class Sudoku {
         int counter = 0;
         switch(area) {
             case ALL:
-				for(int y = 0; y < MAX; y++)
-					for(int x = 0; x < MAX; x++)
+				for(int y = 0; y < Position.getMax(); y++)
+					for(int x = 0; x < Position.getMax(); x++)
 						if((s[y][x][FACE] != MISSING) && (s[y][x][FACE] != exception))
 							counter++;
 				break;
             case HORIZONTAL:
-                for(int x = 0; x < MAX; x++)
+                for(int x = 0; x < Position.getMax(); x++)
                     if((s[row][x][FACE] != MISSING) && (s[row][x][FACE] != exception))
 						counter++;
                 break;
             case VERTICAL:
-                for(int y = 0; y < MAX; y++)
+                for(int y = 0; y < Position.getMax(); y++)
                     if((s[y][column][FACE] != MISSING) && (s[y][column][FACE] != exception))
 						counter++;
                 break;
             case BLOCK:
-                for(int i = 0, y = blockBase(row); i < MIN; i++, y++)
-                    for(int j = 0, x = blockBase(column); j < MIN; j++, x++)
+                for(int i = 0, y = blockBase(row); i < Position.getMin(); i++, y++)
+                    for(int j = 0, x = blockBase(column); j < Position.getMin(); j++, x++)
                         if((s[y][x][FACE] != MISSING) &&
                            (s[y][x][FACE] != exception))
 							counter++;
 				break;
             case BLOCK_HORIZONTAL:
-				for(int j = 0, x = blockBase(column); j < MIN; j++, x++)
+				for(int j = 0, x = blockBase(column); j < Position.getMin(); j++, x++)
 					if((s[row][x][FACE] != MISSING) &&
 					   (s[row][x][FACE] != exception))
 						counter++;
 				break;
             case BLOCK_VERTICAL:
-                for(int i = 0, y = blockBase(row); i < MIN; i++, y++)
+                for(int i = 0, y = blockBase(row); i < Position.getMin(); i++, y++)
 					if((s[y][column][FACE] != MISSING) &&
 					   (s[y][column][FACE] != exception))
 						counter++;
 				break;
             case NUMBER:
-                for(int n = 1; n <= MAX; n++)
+                for(int n = 1; n <= Position.getMax(); n++)
                     if((s[row][column][n] != MISSING) &&
                        (s[row][column][n] != exception))
 						counter++;
@@ -532,24 +254,24 @@ class Sudoku {
 		if(number != 0)
 			switch(area) {
 				case ALL:
-					for(int y = 0; y < MAX; y++)
-						for(int x = 0; x < MAX; x++)
+					for(int y = 0; y < Position.getMax(); y++)
+						for(int x = 0; x < Position.getMax(); x++)
 							if(s[y][x][FACE] == number)
 								exists = y;
 					break;
 				case BLOCK:
-					for(int i = 0, y = blockBase(row); i < MIN; i++, y++)
-						for(int j = 0, x = blockBase(column); j < MIN; j++, x++)
+					for(int i = 0, y = blockBase(row); i < Position.getMin(); i++, y++)
+						for(int j = 0, x = blockBase(column); j < Position.getMin(); j++, x++)
 							if(s[y][x][FACE] == number)
 								exists = y;
 					break;
 				case HORIZONTAL:
-					for(int x = 0; x < MAX; x++)
+					for(int x = 0; x < Position.getMax(); x++)
 						if(s[row][x][FACE] == number)
 							exists = x;
 					break;
 				case VERTICAL:
-					for(int y = 0; y < MAX; y++)
+					for(int y = 0; y < Position.getMax(); y++)
 						if(s[y][column][FACE] == number)
 							exists = y;
 					break;
@@ -585,8 +307,8 @@ class Sudoku {
     void printHorizontalLine(char prefix, boolean showCounter) {
         System.out.print(prefix);
         printSpace(PLUS);
-        for(int y = 0; y < MIN; y++) {
-            for(int x = 0; x < MIN; x++)
+        for(int y = 0; y < Position.getMin(); y++) {
+            for(int x = 0; x < Position.getMin(); x++)
                 printDash(DASH);
             printDash(PLUS);
         }
@@ -597,18 +319,18 @@ class Sudoku {
 
     void print() {
 		System.out.print(SPACE);
-		for(int x = 0; x < MAX; x++) {
-			if(x % MIN == 0)
+		for(int x = 0; x < Position.getMax(); x++) {
+			if(x % Position.getMin() == 0)
 				printSpace(SPACE);
 			printSpace(coordinateX(x));
 		}
 		System.out.println();
-        for(int y = 0; y < MAX; y++) {
-            if((y % MIN) == 0)
+        for(int y = 0; y < Position.getMax(); y++) {
+            if((y % Position.getMin()) == 0)
 				printHorizontalLine(SPACE, false);
 			System.out.print(coordinateY(y));
-            for(int x = 0; x < MAX; x++) {
-                if((x % MIN) == 0)
+            for(int x = 0; x < Position.getMax(); x++) {
+                if((x % Position.getMin()) == 0)
                     printSpace(PIPE);
                 if(s[y][x][FACE] != MISSING)
                     printSpace(s[y][x][FACE]);
@@ -624,9 +346,9 @@ class Sudoku {
     }
 
 	void populateMissingNumbers() {
-		for(int y = 0; y < MAX; y++)
-			for(int x = 0; x < MAX; x++) {
-				for(int number = 1; number <= MAX; number++)
+		for(int y = 0; y < Position.getMax(); y++)
+			for(int x = 0; x < Position.getMax(); x++) {
+				for(int number = 1; number <= Position.getMax(); number++)
 					s[y][x][number] = number;
 			}
 	}
@@ -637,7 +359,7 @@ class Sudoku {
 		System.out.println();
 		populateMissingNumbers();
         String row;
-        for(int y = 0; y < MAX; y++) {
+        for(int y = 0; y < Position.getMax(); y++) {
             if(interactive)
                 System.out.print("ROW[" + y + "] = ");
             try {
@@ -649,7 +371,7 @@ class Sudoku {
                 return;
             }
             int length = (row != null)? row.length(): 0;
-            for(int x = 0; x < MAX; x++)
+            for(int x = 0; x < Position.getMax(); x++)
                 if(x < length)
                     if(row.charAt(x) == SPACE)
                         setNumber(y, x, 0);
@@ -667,55 +389,33 @@ class Sudoku {
 		if(number != MISSING)
 			switch(area) {
 				case ALL:
-					for(int y = 0; y < MAX; y++)
-						for(int x = 0; x < MAX; x++)
+					for(int y = 0; y < Position.getMax(); y++)
+						for(int x = 0; x < Position.getMax(); x++)
 							if(s[y][x][number] != MISSING)
 								s[y][x][number] = MISSING;
 					break;
 				case BLOCK:
-					for(int i = 0, y = blockBase(row); i < MIN; i++, y++)
-						for(int j = 0, x = blockBase(column); j < MIN; j++, x++)
+					for(int i = 0, y = blockBase(row); i < Position.getMin(); i++, y++)
+						for(int j = 0, x = blockBase(column); j < Position.getMin(); j++, x++)
 							if(s[y][x][number] != MISSING)
 								s[y][x][number] = MISSING;
 					break;
 				case HORIZONTAL:
-					for(int x = 0; x < MAX; x++)
+					for(int x = 0; x < Position.getMax(); x++)
 						if(s[row][x][number] != MISSING)
 							s[row][x][number] = MISSING;
 					break;
 				case VERTICAL:
-					for(int y = 0; y < MAX; y++)
+					for(int y = 0; y < Position.getMax(); y++)
 						if(s[y][column][number] != MISSING)
 							s[y][column][number] = MISSING;
 					break;
 				case NUMBER:
-					for(int n = 1; n <= MAX; n++)
+					for(int n = 1; n <= Position.getMax(); n++)
 						if(s[row][column][n] != MISSING)
 							s[row][column][n] = MISSING;
 					break;
 			}
-	}
-
-    void unset(int row, int column, int number) {
-		if(number != MISSING) {
-			unsetArea(Area.BLOCK, row, column, number);
-			unsetArea(Area.HORIZONTAL, row, column, number);
-			unsetArea(Area.VERTICAL, row, column, number);
-			unsetArea(Area.NUMBER, row, column, number);
-		}
-	}
-
-    void unset(int number, List<Cell> cellList) {
-		if(number != MISSING)
-			for(Cell cell: cellList)
-				cell.remove(number);
-	}
-
-    int setNumber(int row, int column, int number) {
-		s[row][column][FACE] = number;
-		if(number != MISSING)
-			unset(row, column, number);
-		return 1; // added
 	}
 
     // Set the last missing number when all other are present
@@ -732,9 +432,9 @@ class Sudoku {
     int setNakedSingle(int row, int column, int number, int depth) {
 		log(depth++, "setNakedSingle(row = " + row + ", column = " + column + ", number = " + number + ")");
 		int added = 0;
-		if((countAreaException(Area.BLOCK, row, column, number, depth) == MAX - 1) || // last one in-block
-		   (countAreaException(Area.HORIZONTAL, row, column, number, depth) == MAX - 1) || // last one horizontally
-		   (countAreaException(Area.VERTICAL, row, column, number, depth) == MAX - 1) || // last one vertically
+		if((countAreaException(Area.BLOCK, row, column, number, depth) == Position.getMax() - 1) || // last one in-block
+		   (countAreaException(Area.HORIZONTAL, row, column, number, depth) == Position.getMax() - 1) || // last one horizontally
+		   (countAreaException(Area.VERTICAL, row, column, number, depth) == Position.getMax() - 1) || // last one vertically
 		   (countAreaException(Area.NUMBER, row, column, number, depth) == 0)) // all others are not allowed here
 			added += setNumber(row, column, number);
 		var(depth, "added", added);
@@ -749,12 +449,12 @@ class Sudoku {
 		List<Pair> pairList = new ArrayList<Pair>();
 		switch(area) {
 			case ALL:
-				for(int y = 0; y < MAX; y++)
-					for(int x = 0; x < MAX; x++) {
+				for(int y = 0; y < Position.getMax(); y++)
+					for(int x = 0; x < Position.getMax(); x++) {
 						Position point = new Position(y, x);
 						if(countArea(Area.NUMBER, y, x, depth) == 2) {
 							Pair pair = new Pair();
-							for(int number = 1; number <= MAX; number++)
+							for(int number = 1; number <= Position.getMax(); number++)
 								if(s[y][x][number] == number) {
 									Cell cell = new Cell(point, number);
 									pair.cellList.add(cell);
@@ -764,12 +464,12 @@ class Sudoku {
 					}
 				break;
 			case BLOCK:
-				for(int i = 0, y = blockBase(row); i < MIN; i++, y++)
-					for(int j = 0, x = blockBase(column); j < MIN; j++, x++) {
+				for(int i = 0, y = blockBase(row); i < Position.getMin(); i++, y++)
+					for(int j = 0, x = blockBase(column); j < Position.getMin(); j++, x++) {
 						Position point = new Position(y, x);
 						if(countArea(Area.NUMBER, y, x, depth) == 2) {
 							Pair pair = new Pair();
-							for(int number = 1; number <= MAX; number++)
+							for(int number = 1; number <= Position.getMax(); number++)
 								if(s[y][x][number] == number) {
 									Cell cell = new Cell(point, number);
 									pair.cellList.add(cell);
@@ -779,11 +479,11 @@ class Sudoku {
 					}
 				break;
 			case HORIZONTAL:
-				for(int x = 0; x < MAX; x++) {
+				for(int x = 0; x < Position.getMax(); x++) {
 					Position point = new Position(row, x);
 					if(countArea(Area.NUMBER, row, x, depth) == 2) {
 						Pair pair = new Pair();
-						for(int number = 1; number <= MAX; number++)
+						for(int number = 1; number <= Position.getMax(); number++)
 							if(s[row][x][number] == number) {
 								Cell cell = new Cell(point, number);
 								pair.cellList.add(cell);
@@ -793,11 +493,11 @@ class Sudoku {
 				}
 				break;
 			case VERTICAL:
-				for(int y = 0; y < MAX; y++) {
+				for(int y = 0; y < Position.getMax(); y++) {
 					Position point = new Position(y, column);
 					if(countArea(Area.NUMBER, y, column, depth) == 2) {
 						Pair pair = new Pair();
-						for(int number = 1; number <= MAX; number++)
+						for(int number = 1; number <= Position.getMax(); number++)
 							if(s[y][column][number] == number) {
 								Cell cell = new Cell(point, number);
 								pair.cellList.add(cell);
@@ -836,9 +536,9 @@ class Sudoku {
 				int second = pairList.get(q).value();
 				if(first == second) {
 					List<Cell> cellList = matrix.horizontal(row);
-					cellList.remove(matrix.cells(first.point));
-					cellList.remove(matrix.cells(second.point));
-					matrix.unset(int number, cellList);
+					cellList.removeCandidate(matrix.cells(first.point));
+					cellList.removeCandidate(matrix.cells(second.point));
+					matrix.removeCandidate(int number, cellList);
 				}
 			}
 		}
@@ -877,7 +577,7 @@ class Sudoku {
 		var(depth, "count_jFirst", count_jFirst);
 		int count_jSecond = (area == Area.HORIZONTAL)? countArea(blockArea, i, jSecond, depth): countArea(blockArea, j, jSecond, depth); // 1 x 3
 		var(depth, "count_jSecond", count_jSecond);
-		if((count_jFirst == MIN) && (count_jSecond == MIN))
+		if((count_jFirst == Position.getMin()) && (count_jSecond == Position.getMin()))
 			allowed = true;
 		else {
 			int iFirst = (area == Area.HORIZONTAL)? next(i): next(j);
@@ -903,12 +603,12 @@ class Sudoku {
 				int count_iSecond_jSecond = countArea(blockArea, iSecond, jSecond, depth); // 1 x 3
 				var(depth, "count_iSecond_jSecond", count_iSecond_jSecond);
 				if((exists_iFirst == NOT_FOUND) &&
-				  (((exists_iSecond == jFirst) && (count_jSecond == MIN) && (count_iSecond_jSecond == MIN)) ||
-				   ((exists_iSecond == jSecond) && (count_jFirst == MIN) && (count_iSecond_jFirst == MIN))))
+				  (((exists_iSecond == jFirst) && (count_jSecond == Position.getMin()) && (count_iSecond_jSecond == Position.getMin())) ||
+				   ((exists_iSecond == jSecond) && (count_jFirst == Position.getMin()) && (count_iSecond_jFirst == Position.getMin()))))
 					allowed = true;
 				else if((exists_iSecond == NOT_FOUND) &&
-				  (((exists_iFirst == jFirst) && (count_jSecond == MIN) && (count_iFirst_jSecond == MIN)) ||
-				   ((exists_iFirst == jSecond) && (count_jFirst == MIN) && (count_iFirst_jFirst == MIN))))
+				  (((exists_iFirst == jFirst) && (count_jSecond == Position.getMin()) && (count_iFirst_jSecond == Position.getMin())) ||
+				   ((exists_iFirst == jSecond) && (count_jFirst == Position.getMin()) && (count_iFirst_jFirst == Position.getMin()))))
 					allowed = true;
 			}
 		}
@@ -942,8 +642,8 @@ class Sudoku {
 			int notAllowed = 0;
 			switch(area) {
 				case BLOCK:
-					for(int i = 0, y = blockBase(row); i < MIN; i++, y++) {
-						for(int j = 0, x = blockBase(column); j < MIN; j++, x++) {
+					for(int i = 0, y = blockBase(row); i < Position.getMin(); i++, y++) {
+						for(int j = 0, x = blockBase(column); j < Position.getMin(); j++, x++) {
 							if(((x != column) || (y != row)) &&
 							   ((s[y][x][FACE] != MISSING) ||
 								(existsArea(Area.HORIZONTAL, y, x, number, depth) != NOT_FOUND) ||
@@ -953,21 +653,21 @@ class Sudoku {
 					}
 					break;
 				case HORIZONTAL:
-					for(int x = 0; x < MIN; x++)
+					for(int x = 0; x < Position.getMin(); x++)
 						if((x != column) &&
 						   ((s[row][x][FACE] != MISSING) ||
 							(existsArea(Area.VERTICAL, row, x, number, depth) != NOT_FOUND)))
 							notAllowed++;
 					break;
 				case VERTICAL:
-					for(int y = 0; y < MIN; y++)
+					for(int y = 0; y < Position.getMin(); y++)
 						if((y != row) &&
 						   ((s[y][column][FACE] != MISSING) ||
 							(existsArea(Area.HORIZONTAL, y, column, number, depth) != NOT_FOUND)))
 							notAllowed++;
 					break;
 			}
-			if(notAllowed == MAX - 1) {
+			if(notAllowed == Position.getMax() - 1) {
 				added += setNumber(row, column, number);
 				break;
 			}
@@ -995,15 +695,15 @@ class Sudoku {
 				go = goList.get(0);
 				goList.remove(0);
 			}
-            for(int y = 0; y < MAX; y++) {
+            for(int y = 0; y < Position.getMax(); y++) {
 				if(go.length() > 0)
 					y = go.charAt(0) - ZERO;
-                for(int x = 0; x < MAX; x++) {
+                for(int x = 0; x < Position.getMax(); x++) {
 					if(go.length() > 1)
 						x = go.charAt(1) - ZERO;
 					printMissing(y, x);
 					if(s[y][x][FACE] == MISSING) { // empty?
-						for(int number = 1; number <= MAX; number++) {
+						for(int number = 1; number <= Position.getMax(); number++) {
 							if(go.length() > 2)
 								number = go.charAt(2) - ZERO;
 							if(s[y][x][number] == number) { // possible position?
@@ -1048,20 +748,6 @@ class Sudoku {
 		if(analyze)
 			analysis();
     }
-
-	String printSpace(String dense) {
-		String thin = EMPTY;
-		for(int i = 0; i < dense.length(); i++) {
-			if(i != 0)
-				thin += SPACE;
-			thin += dense.charAt(i);
-		}
-		return thin;
-	}
-
-	String printSpace(Area area) {
-		return printSpace(area.name());
-	}
 
     void statistics() {
 		System.out.println();
@@ -1188,7 +874,7 @@ class Sudoku {
 					}
 				} else
 					if(value.equals("-c")) {
-						if(!sudoku.setCoordinate(argument))
+						if(!coordinate.setSystem(argument))
 							return;
 						value = EMPTY;
 					} else if(value.equals("-g")) {

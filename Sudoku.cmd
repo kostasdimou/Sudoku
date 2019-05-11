@@ -2,11 +2,12 @@
 @set PROGRAM=Sudoku
 @set JAVA=%PROGRAM%.java
 @set CLASS=%PROGRAM%.class
+@set COMPILER_OPTIONS="-Xmaxerrs 10 -Xmaxwarns 10"
 @for /f %%f in ('dir /b /o:d "%JAVA%" "%CLASS%"') do @set NEWEST=%%f
 @if %NEWEST% == %JAVA% (
 	@echo ===== COMPILING =====
-	@echo javac %JAVA%
-	javac %JAVA%
+	@echo javac %COMPILER_OPTIONS% %JAVA%
+	javac %COMPILER_OPTIONS% %JAVA%
 )
 @if %ERRORLEVEL% == 0 (
 	@if "%~1" == "" (
