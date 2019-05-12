@@ -3,8 +3,9 @@ import java.lang.Math;
 
 class Position extends Print {
 	private static final char ALPHA = 'A';
-    private static final int NOT_FOUND = -1;
 	private static final Coordinate coordinate = Coordinate.getInstance();
+
+    public static final int NOT_FOUND = -1;
 
 	private static int MAX = 9;
 	private static int MIN = (int)Math.sqrt(MAX);
@@ -58,46 +59,22 @@ class Position extends Print {
 
 	// Returns the y coordinate according to the internal coordinate format
 	public String Y() {
-		Integer i = y;
-		switch(coordinate.getFormat()) {
-			case JAVA: // Y=0-9, X=0-9
-				return i.toString();
-			case SUDOKU: // Y=A-I, X=1-9
-				char c = ALPHA;
-				c += y;
-				return Character.toString(c);
-			case CHESS: // Y=9-1, X=A-I
-				i = MAX - i;
-				return i.toString();
-		}
-		return EMPTY;
+		return coordinate.Y(y, MAX);
 	}
 
 	// Returns the x coordinate according to the internal coordinate format
 	public String X() {
-		Integer i = x;
-		switch(coordinate.getFormat()) {
-			case JAVA: // Y=0-9, X=0-9
-				return i.toString();
-			case SUDOKU: // Y=A-I, X=1-9
-				return (++i).toString();
-			case CHESS: // Y=9-1, X=A-I
-				char c = ALPHA;
-				c += x;
-				return Character.toString(c);
-		}
-		return EMPTY;
+		return coordinate.X(x);
+	}
+
+	public String toString() {
+		return "[" + Y() + "," + X() + "]";
 	}
 
 	// Prints the coordinates of the position according to the internal coordinate format
 	void print(int depth) {
 		margin(depth);
-		System.out.print("[" + Y() + "," + X() + "]");
-	}
-
-	void println(int depth) {
-		print(depth);
-		System.out.println();
+		System.out.println(toString());
 	}
 
 	boolean equals(Position p) {
@@ -115,73 +92,80 @@ class Position extends Print {
 	}
 
 	// Increments the position according to the given area
-	void plus(Area area) {
-		Position p = null;
-		switch(area) {
+	void forward(Area a, int step) {
+		switch(a) {
 			case DIAGONAL:
-				if((y < MAX) && (x < MAX)) {
-					y++;
-					x++;
+				if((y + step < MAX) && (x + step < MAX)) {
+					y += step;
+					x += step;
 				}
 				break;
 			case HORIZONTAL:
-				if(x < MAX)
-					x++;
+				if(x + step < MAX)
+					x += step;
 				else
-					if(y < MAX) {
+					if(y + step < MAX) {
 						x = 0;
-						y++;
+						y += step;
 					}
 				break;
 			case VERTICAL:
-				if(y < MAX)
-					y++;
+				if(y + step < MAX)
+					y += step;
 				else
-					if(x < MAX) {
+					if(x + step < MAX) {
 						y = 0;
-						x++;
+						x += step;
 					}
 				break;
 		}
+	}
+
+	void forward(Area a) {
+		forward(a, 1);
 	}
 
 	// Decrements the position according to the given area
-	void minus(Area area) {
-		switch(area) {
+	void backward(Area a, int step) {
+		switch(a) {
 			case DIAGONAL:
-				if((y > 0) && (x > 0)) {
-					y--;
-					x--;
+				if((y - step >= 0) && (x - step >= 0)) {
+					y -= step;
+					x -= step;
 				}
 				break;
 			case HORIZONTAL:
-				if(x > 0)
-					x--;
+				if(x - step >= 0)
+					x -= step;
 				else
-					if(y > 0) {
+					if(y - step >= 0) {
 						x = MAX;
-						y--;
+						y -= step;
 					}
 				break;
 			case VERTICAL:
-				if(y > 0)
-					y--;
+				if(y - step >= 0)
+					y -= step;
 				else
-					if(x > 0) {
+					if(x - step >= 0) {
 						y = MAX;
-						x--;
+						x -= step;
 					}
 				break;
 		}
 	}
 
+	void backward(Area a) {
+		backward(a, 1);
+	}
+
 	// Returns the adjacent position according to the given area, excluding the exception
-	Position next(Area area, Position exception) {
+	Position next(Area a, int step, Position exception) {
 		Position p = base();
-		switch(area) {
+		switch(a) {
 			case HORIZONTAL:
 			case VERTICAL:
-				for(int i = 0; i < MIN; i++, p.plus(area)) {
+				for(int i = 0; i < MIN * step; i++, p.forward(a, step)) {
 					if(p.equals(this))
 						continue;
 					else if(p.equals(exception))
@@ -193,7 +177,19 @@ class Position extends Print {
 		return null;
 	}
 
-	Position next(Area area) {
-		return next(area, null);
+	Position next(Area a, int step) {
+		return next(a, step, null);
+	}
+
+	Position next(Area a) {
+		return next(a, 1, null);
+	}
+
+	Position blockNext(Area a, Position blockException) {
+		return next(a, Position.getMin(), blockException);
+	}
+
+	Position blockNext(Area a) {
+		return next(a, Position.getMin(), null);
 	}
 }

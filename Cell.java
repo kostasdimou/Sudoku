@@ -1,6 +1,4 @@
-import java.util.List;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
 import java.lang.IllegalArgumentException;
 
 class Cell extends Print {
@@ -8,25 +6,68 @@ class Cell extends Print {
 
 	private static final String[] MULTIPLE = {"NOTHING", "SINGLE", "PAIR", "TRIPLE"};
 
-	private int number;
-	private List<Integer> candidates;
+	private int number = MISSING;
+	private ArrayList<Integer> candidates;
+	private Position point; // for printing purposes
 
-	Cell(int max) {
+	Cell(Position p) {
+		point = new Position(p);
 		number = MISSING;
-		candidates = allNumbers(max);
+		candidates = allNumbers(p.getMax());
 	}
 
-	Cell(int n, int max) {
+	Cell(Position p, int n) {
+		point = p;
 		number = n;
-		candidates = allNumbers(max);
 	}
 
-	private static final List<Integer> allNumbers(int max) {
-		return Stream.iterate(1, n -> n + 1).limit(max).collect(Collectors.toList());
+	void setPoint(Position p) {
+		point = p;
+	}
+
+	Position getPoint() {
+		return point;
+	}
+
+	void setNumber(int n) {
+		if(n == MISSING)
+			return;
+		number = n;
+		candidates.clear();
+	}
+
+	int getNumber() {
+		return number;
+	}
+
+	void setCabdidates(ArrayList<Integer> l) {
+		candidates = l;
+	}
+
+	ArrayList<Integer> getCandidates() {
+		return candidates;
+	}
+
+	ArrayList<Integer> allNumbers(int max) {
+		ArrayList<Integer> all = new ArrayList<Integer>();
+		for(int n = 1; n <= max; n++)
+			all.add(n);
+		return all;
+	}
+
+	boolean equals(int n) {
+		return (number == n);
 	}
 
 	boolean equals(Cell c) {
 		return (number == c.number);
+	}
+
+	boolean candidateExists(int c) {
+		int index = candidates.indexOf(c);
+        if(index >= 0)
+			return true;
+		return false;
 	}
 
 	void removeCandidate(int c) {
@@ -35,42 +76,58 @@ class Cell extends Print {
 			candidates.remove(index);
 	}
 
-	void setNumber(int n) {
+    int candidateCount() {
+		return candidates.size();
+	}
+
+    int getFirstCandidate() {
+		return candidates.get(0);
+	}
+
+    int count(int exception) {
+		if((number != MISSING) && (number != exception))
+			return 1;
+		return 0;
+	}
+
+    int count() {
 		if(number != MISSING)
-			throw new IllegalArgumentException(Integer.toString(n));
-		number = n;
-		candidates.clear();
+			return 1;
+		return 0;
 	}
 
-	void print(int depth, Position p, Coordinate c) {
-		margin(depth);
-		System.out.print("Cell");
-		p.print(0);
-		System.out.print(EMPTY + SPACE + number);
+    boolean empty() {
+		if(number == MISSING)
+			return true;
+		return false;
 	}
 
-	void println(int depth, Position p, Coordinate c) {
-		print(depth, p, c);
-		System.out.println();
+    boolean exists() {
+		if(number == MISSING)
+			return false;
+		return true;
 	}
 
-	void printMissing(int depth, Position p) {
-		if(candidates.size() > 0) {
-			System.out.print("Missing");
-			p.print(0);
-			int counter = 0;
-			for(int n = 1; n <= p.getMax(); n++) {
-				System.out.print(SPACE);
-				if(candidates.indexOf(n) >= 0) {
-					System.out.print(n);
-					counter++;
-				}
-				else
-					System.out.print(SPACE);
-			}
-			if((counter > 0) && (counter < MULTIPLE.length))
-				System.out.print(" << " + MULTIPLE[counter] + " >>");
-			System.out.println();
+	public String toString() {
+		String s = "Cell" + point.toString() + SPACE;
+		if(number == MISSING)
+			s += "?";
+		else
+			s += number;
+		s += SPACE;
+		s += DASH;
+		int counter = candidates.size();
+		for(Integer c: candidates) {
+			s += SPACE;
+			s += c;
 		}
+		if((counter > 0) && (counter < MULTIPLE.length))
+			s += " << " + MULTIPLE[counter] + " >>";
+		return s;
+	}
+
+	void print(int depth) {
+		margin(depth);
+		System.out.println(toString());
 	}
 }
