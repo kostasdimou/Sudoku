@@ -1,10 +1,12 @@
 # Sudoku.java by Kostas Dimou @ 2019
 
 Usage:
+
     Sudoku [--analyze] [--coordinates FORMAT] [--debug] [--go YX] [--help] \
            [--interactive] [--method METHOD] [--solve] [--verbose]
 
 Where:
+
     -a or --analyze:
         Displays the posible positions for each number.
     -c or --coordinates:
@@ -51,6 +53,7 @@ Where:
         Displays the Sudoku matrix on every passage.
 
 Examples:
+
     java Sudoku --help
     java Sudoku --interactive
     java Sudoku --coordinate SUDOKU < Sudoku.0002
