@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.lang.IllegalArgumentException;
 
-class Cell extends Print {
+class Cell {
     public static final int MISSING = 0;
 
 	private static final String[] MULTIPLE = {"NOTHING", "SINGLE", "PAIR", "TRIPLE"};
@@ -21,6 +21,16 @@ class Cell extends Print {
 		number = n;
 	}
 
+	boolean equals(int n) {
+		return (number == n);
+	}
+
+	boolean equals(Cell c) {
+		return (number == c.number);
+	}
+
+	// POINT //
+	
 	void setPoint(Position p) {
 		point = p;
 	}
@@ -28,6 +38,8 @@ class Cell extends Print {
 	Position getPoint() {
 		return point;
 	}
+
+	// NUMBER //
 
 	void setNumber(int n) {
 		if(n == MISSING)
@@ -38,50 +50,6 @@ class Cell extends Print {
 
 	int getNumber() {
 		return number;
-	}
-
-	void setCabdidates(ArrayList<Integer> l) {
-		candidates = l;
-	}
-
-	ArrayList<Integer> getCandidates() {
-		return candidates;
-	}
-
-	ArrayList<Integer> allNumbers(int max) {
-		ArrayList<Integer> all = new ArrayList<Integer>();
-		for(int n = 1; n <= max; n++)
-			all.add(n);
-		return all;
-	}
-
-	boolean equals(int n) {
-		return (number == n);
-	}
-
-	boolean equals(Cell c) {
-		return (number == c.number);
-	}
-
-	boolean candidateExists(int c) {
-		int index = candidates.indexOf(c);
-        if(index >= 0)
-			return true;
-		return false;
-	}
-
-	void removeCandidate(int c) {
-		int index = candidates.indexOf(c);
-		if(index >= 0)
-			candidates.remove(index);
-	}
-
-    int candidateCount() {
-		return candidates.size();
-	}
-
-    int getFirstCandidate() {
-		return candidates.get(0);
 	}
 
     int count(int exception) {
@@ -96,7 +64,7 @@ class Cell extends Print {
 		return 0;
 	}
 
-    boolean empty() {
+    boolean isEmpty() {
 		if(number == MISSING)
 			return true;
 		return false;
@@ -108,26 +76,68 @@ class Cell extends Print {
 		return true;
 	}
 
+	// CANDIDATES //
+	
+	void setCandidate(int n) {
+		candidates.add(n);
+	}
+
+	void setCandidates(ArrayList<Integer> l) {
+		candidates = l;
+	}
+
+	ArrayList<Integer> getCandidates() {
+		return candidates;
+	}
+
+	ArrayList<Integer> allNumbers(int max) {
+		ArrayList<Integer> all = new ArrayList<Integer>();
+		for(int n = 1; n <= max; n++)
+			all.add(n);
+		return all;
+	}
+
+	boolean equalsCandidates(ArrayList<Integer> sample) {
+		return sample.equals(candidates);
+	}
+
+	boolean existsCandidate(int c) {
+		int index = candidates.indexOf(c);
+        if(index >= 0)
+			return true;
+		return false;
+	}
+
+	void removeCandidate(int c) {
+		int index = candidates.indexOf(c);
+		if(index >= 0)
+			candidates.remove(index);
+	}
+
+    int countCandidates() {
+		return candidates.size();
+	}
+
+    int getCandidateAt(int index) {
+		return candidates.get(index);
+	}
+
+	// PRINT //
+
 	public String toString() {
-		String s = "Cell" + point.toString() + SPACE;
+		String s = "Cell" + point.toString();
 		if(number == MISSING)
-			s += "?";
+			s += " ?";
 		else
-			s += number;
-		s += SPACE;
-		s += DASH;
-		int counter = candidates.size();
-		for(Integer c: candidates) {
-			s += SPACE;
-			s += c;
-		}
-		if((counter > 0) && (counter < MULTIPLE.length))
-			s += " << " + MULTIPLE[counter] + " >>";
+			s += " " + number;
+		s += " - " + candidates.toString();
+		int size = candidates.size();
+		if((size > 0) && (size < MULTIPLE.length))
+			s += " << " + MULTIPLE[size] + " >>";
 		return s;
 	}
 
-	void print(int depth) {
-		margin(depth);
+	void println() {
 		System.out.println(toString());
 	}
 }

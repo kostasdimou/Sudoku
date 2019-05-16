@@ -1,10 +1,7 @@
 import java.util.stream.IntStream;
 import java.lang.Math;
 
-class Position extends Print {
-	private static final char ALPHA = 'A';
-	private static final Coordinate coordinate = Coordinate.getInstance();
-
+class Position {
     public static final int NOT_FOUND = -1;
 
 	private static int MAX = 9;
@@ -59,12 +56,12 @@ class Position extends Print {
 
 	// Returns the y coordinate according to the internal coordinate format
 	public String Y() {
-		return coordinate.Y(y, MAX);
+		return Coordinate.Y(y, MAX);
 	}
 
 	// Returns the x coordinate according to the internal coordinate format
 	public String X() {
-		return coordinate.X(x);
+		return Coordinate.X(x);
 	}
 
 	public String toString() {
@@ -72,17 +69,20 @@ class Position extends Print {
 	}
 
 	// Prints the coordinates of the position according to the internal coordinate format
-	void print(int depth) {
-		margin(depth);
+	void println() {
 		System.out.println(toString());
+	}
+
+	boolean equals(int row, int column) {
+		if(row == y)
+			return (column == x);
+		return false;
 	}
 
 	boolean equals(Position p) {
 		if(p == null)
 			return false;
-		if(y == p.y)
-			return (x == p.x);
-		return false;
+		return equals(p.y, p.x);
 	}
 
 	// Returns the position of the container block

@@ -1,6 +1,6 @@
-class Matrix extends Print {
-	private static final Coordinate coordinate = Coordinate.getInstance();
+import java.util.ArrayList;
 
+class Matrix {
 	private static boolean analysis;
 
 	private Cell[][] cellList;
@@ -38,67 +38,21 @@ class Matrix extends Print {
 		return cellList[y][x];
 	}
 
+	// NUMBER //
+
 	// Sets the number and removes the equivalent candidates
 	// from the block, the horizontal and vertical lines.
-	int setNumber(Position p, int n) {
+	int setNumber(Position p, int n, int depth) {
 		cellList[p.getY()][p.getX()].setNumber(n);
-		removeCandidate(p, Area.HORIZONTAL, n);
-		removeCandidate(p, Area.VERTICAL, n);
-		removeCandidate(p, Area.BLOCK, n);
+		removeCandidate(Area.HORIZONTAL, p, n, depth);
+		removeCandidate(Area.VERTICAL, p, n, depth);
+		removeCandidate(Area.BLOCK, p, n, depth);
 		return 1;
-	}
-
-	// Removes the candidates from the given area.
-	void removeCandidate(Position p, Area a, int c) {
-		Position b = p.base();
-		int max = p.getMax();
-		int min = p.getMin();
-		switch(a) {
-			case POINT:
-				cellList[p.getY()][p.getX()].removeCandidate(c);
-				break;
-			case BUCKET_HORIZONTAL:
-				for(int j = 0, x = b.getX(); j < min; j++, x++)
-					cellList[p.getY()][x].removeCandidate(c);
-				break;
-			case BUCKET_VERTICAL:
-				for(int i = 0, y = b.getY(); i < min; i++, y++)
-					cellList[y][p.getX()].removeCandidate(c);
-				break;
-			case BLOCK:
-				for(int i = 0, y = b.getY(); i < min; i++, y++)
-					for(int j = 0, x = b.getX(); j < min; j++, x++)
-						cellList[y][x].removeCandidate(c);
-				break;
-			case HORIZONTAL:
-				for(int x = 0; x < max; x++)
-					cellList[p.getY()][x].removeCandidate(c);
-				break;
-			case VERTICAL:
-				for(int y = 0; y < max; y++)
-					cellList[y][p.getX()].removeCandidate(c);
-				break;
-			case ALL:
-				for(int y = 0; y < max; y++)
-					for(int x = 0; x < max; x++)
-						cellList[y][x].removeCandidate(c);
-				break;
-		}
-	}
-
-	// Counts the candidates of a cell.
-    int candidateCount(int row, int column) {
-		return cellList[row][column].candidateCount();
-	}
-	
-	// Returns the first candidate of a cell.
-    int getFirstCandidate(int row, int column) {
-		return cellList[row][column].getFirstCandidate();
 	}
 
 	// Count the non-empty cells omitting the exception
     int count(Area a, int row, int column, int exception, int depth) {
-		log("count(area = " + a + ", row = " + row + ", column = " + column + ", exception = " + exception + ")", depth++);
+		Debug.log("count(area = " + a + ", row = " + row + ", column = " + column + ", exception = " + exception + ")", depth++);
 		Position p = new Position(row, column);
 		int max = Position.getMax();
 		int min = Position.getMin();
@@ -131,23 +85,23 @@ class Matrix extends Print {
 					counter += cellList[y][column].count(exception);
 				break;
 		}
-		var("counter", counter, depth);
+		Debug.var("counter", counter, depth);
         return counter;
     }
 
 	// Counts the non-empty cells without exception
-    int count(Area a, int row, int column, int depth) {
-		return count(a, row, column, Cell.MISSING, depth);
+    int count(Area a, int y, int x, int depth) {
+		return count(a, y, x, Cell.MISSING, depth);
 	}
 
 	// Counts the non-empty cells without exception
-    int count(int row, int column) {
-		return cellList[row][column].count();
+    int count(int y, int x) {
+		return cellList[y][x].count();
 	}
 
 	// Checks if a cell is empty (has not a number yet).
-    boolean empty(int row, int column) {
-		return cellList[row][column].empty();
+    boolean isEmpty(int y, int x) {
+		return cellList[y][x].isEmpty();
 	}
 
 	// Count all cells
@@ -162,7 +116,7 @@ class Matrix extends Print {
 
 	// Checks if a number exists in the given area
     int exists(Area a, int row, int column, int number, int depth) {
-    	log("exists(area = " + a + ", row = " + row + ", column = " + column + ", number = " + number + ")", depth++);
+    	Debug.log("exists(area = " + a + ", row = " + row + ", column = " + column + ", number = " + number + ")", depth++);
 		int max = Position.getMax();
 		int exists = Position.NOT_FOUND;
 		if(number != 0)
@@ -192,36 +146,154 @@ class Matrix extends Print {
 							exists = y;
 					break;
 			}
-		var("exists", exists, depth);
+		Debug.var("exists", exists, depth);
         return exists;
     }
 
 	// Checks if a number exists in the current block, horizontal and vertical lines.
-    boolean exists(int row, int column, int number, int depth) {
-    	// log("exists(row = " + row + ", column = " + column + ", number = " + number + ")", depth++);
+    boolean exists(int y, int x, int number, int depth) {
 		boolean exists =
-			(exists(Area.HORIZONTAL, row, column, number, depth) > Position.NOT_FOUND) ||
-			(exists(Area.VERTICAL, row, column, number, depth) > Position.NOT_FOUND) ||
-			(exists(Area.BLOCK, row, column, number, depth) > Position.NOT_FOUND);
-		var("exists", exists, depth);
+			(exists(Area.HORIZONTAL, y, x, number, depth) > Position.NOT_FOUND) ||
+			(exists(Area.VERTICAL, y, x, number, depth) > Position.NOT_FOUND) ||
+			(exists(Area.BLOCK, y, x, number, depth) > Position.NOT_FOUND);
+		Debug.var("exists", exists, depth);
 		return exists;
 	}
 
 	// Checks if a cell is not empty (has a number assigned).
-    boolean exists(int row, int column, int depth) {
-    	// log("exists(row = " + row + ", column = " + column + ")", depth++);
-		return cellList[row][column].exists();
+    boolean exists(int y, int x) {
+		return cellList[y][x].exists();
+	}
+	
+	// CANDIDATES //
+
+	// Returns the all candidates of a cell.
+    ArrayList<Integer> getCandidates(int y, int x) {
+		return cellList[y][x].getCandidates();
 	}
 
+	// Returns the candidate of a cell from the given index.
+    int getCandidateAt(int y, int x, int index) {
+		return cellList[y][x].getCandidateAt(0);
+	}
+
+	// Removes the candidates from the given area.
+	Position findCandidate(Area a, Position p, ArrayList<Integer> sample, ArrayList<Position> exceptions, int depth) {
+		Position b = p.base();
+		int max = p.getMax();
+		int min = p.getMin();
+		switch(a) {
+			case BLOCK:
+				for(int i = 0, y = b.getY(); i < min; i++, y++)
+					for(int j = 0, x = b.getX(); j < min; j++, x++)
+						for(Position e: exceptions)
+							if(!e.equals(y, x))
+								if(cellList[y][x].equalsCandidates(sample))
+									return new Position(y, x);
+				break;
+			case HORIZONTAL:
+				for(int x = 0; x < max; x++)
+					for(Position e: exceptions)
+						if(!e.equals(p.getY(), x))
+							if(cellList[p.getY()][x].equalsCandidates(sample))
+								return new Position(p.getY(), x);
+				break;
+			case VERTICAL:
+				for(int y = 0; y < max; y++)
+					for(Position e: exceptions)
+						if(!e.equals(y, p.getX()))
+							if(cellList[y][p.getX()].equalsCandidates(sample))
+								return new Position(y, p.getX());
+				break;
+			case ALL:
+				for(int y = 0; y < max; y++)
+					for(int x = 0; x < max; x++)
+						for(Position e: exceptions)
+							if(!e.equals(y, x))
+								if(cellList[y][x].equalsCandidates(sample))
+									return new Position(y, x);
+				break;
+		}
+		return null;
+	}
+
+	// Removes the candidates from the given area.
+	void removeCandidate(Area a, Position p, int c, ArrayList<Position> exceptions, int depth) {
+		Position b = p.base();
+		int max = p.getMax();
+		int min = p.getMin();
+		switch(a) {
+			case POINT:
+				cellList[p.getY()][p.getX()].removeCandidate(c);
+				break;
+			case BUCKET_HORIZONTAL:
+				for(int j = 0, x = b.getX(); j < min; j++, x++)
+					for(Position e: exceptions)
+						if(!e.equals(p.getY(), x))
+							cellList[p.getY()][x].removeCandidate(c);
+				break;
+			case BUCKET_VERTICAL:
+				for(int i = 0, y = b.getY(); i < min; i++, y++)
+					for(Position e: exceptions)
+						if(!e.equals(y, p.getX()))
+							cellList[y][p.getX()].removeCandidate(c);
+				break;
+			case BLOCK:
+				for(int i = 0, y = b.getY(); i < min; i++, y++)
+					for(int j = 0, x = b.getX(); j < min; j++, x++)
+						for(Position e: exceptions)
+							if(!e.equals(y, x))
+								cellList[y][x].removeCandidate(c);
+				break;
+			case HORIZONTAL:
+				for(int x = 0; x < max; x++)
+					for(Position e: exceptions)
+						if(!e.equals(p.getY(), x))
+							cellList[p.getY()][x].removeCandidate(c);
+				break;
+			case VERTICAL:
+				for(int y = 0; y < max; y++)
+					for(Position e: exceptions)
+						if(!e.equals(y, p.getX()))
+							cellList[y][p.getX()].removeCandidate(c);
+				break;
+			case ALL:
+				for(int y = 0; y < max; y++)
+					for(int x = 0; x < max; x++)
+						for(Position e: exceptions)
+							if(!e.equals(y, x))
+								cellList[y][x].removeCandidate(c);
+				break;
+		}
+	}
+
+	// Removes the candidates from the given area.
+	void removeCandidate(Area a, Position p, int c, int depth) {
+		Position none = new Position();
+		ArrayList<Position> noExceptions = new ArrayList<Position>();
+		noExceptions.add(none);
+		removeCandidate(a, p, c, noExceptions, depth);
+	}
+
+	// Removes the candidates from the given area.
+	void removeCandidate(Area a, int y, int x, int c, int depth) {
+		Position p = new Position(y, x);
+		removeCandidate(a, p, c, depth);
+	}
+
+	// Counts the candidates of a cell.
+    int countCandidates(int y, int x) {
+		return cellList[y][x].countCandidates();
+	}
+	
 	// Checks if the given number ia a possible candidate for these coordinates.
-	boolean candidateExists(int row, int column, int number, int depth) {
-    	// log("candidateExists(row = " + row + ", column = " + column + ", number = " + number + ")", depth++);
-		return cellList[row][column].candidateExists(number);
+	boolean existsCandidate(int y, int x, int number) {
+		return cellList[y][x].existsCandidate(number);
 	}
 
 	// Count the non-empty cells omitting the exception
-    int candidateCountIf(Area a, int row, int column, int candidate, int depth) {
-		log("candidateCountIf(area = " + a + ", row = " + row + ", column = " + column + ", candidate = " + candidate + ")", depth++);
+    int countCandidateIf(Area a, int row, int column, int candidate, int depth) {
+		Debug.log("countCandidateIf(area = " + a + ", row = " + row + ", column = " + column + ", candidate = " + candidate + ")", depth++);
 		Position p = new Position(row, column);
 		int max = Position.getMax();
 		int min = Position.getMin();
@@ -230,43 +302,61 @@ class Matrix extends Print {
             case ALL:
 				for(int y = 0; y < max; y++)
 					for(int x = 0; x < max; x++)
-						if(cellList[y][x].candidateExists(candidate))
+						if(cellList[y][x].existsCandidate(candidate))
 							counter++;
 				break;
             case HORIZONTAL:
                 for(int x = 0; x < max; x++)
-					if(cellList[row][x].candidateExists(candidate))
+					if(cellList[row][x].existsCandidate(candidate))
 						counter++;
                 break;
             case VERTICAL:
                 for(int y = 0; y < max; y++)
-					if(cellList[y][column].candidateExists(candidate))
+					if(cellList[y][column].existsCandidate(candidate))
 						counter++;
                 break;
             case BLOCK:
                 for(int i = 0, y = p.base().getY(); i < min; i++, y++)
                     for(int j = 0, x = p.base().getX(); j < min; j++, x++)
-						if(cellList[y][x].candidateExists(candidate))
+						if(cellList[y][x].existsCandidate(candidate))
 							counter++;
 				break;
             case BUCKET_HORIZONTAL:
 				for(int j = 0, x = p.base().getX(); j < min; j++, x++)
-					if(cellList[row][x].candidateExists(candidate))
+					if(cellList[row][x].existsCandidate(candidate))
 						counter++;
 				break;
             case BUCKET_VERTICAL:
                 for(int i = 0, y = p.base().getY(); i < min; i++, y++)
-					if(cellList[y][column].candidateExists(candidate))
+					if(cellList[y][column].existsCandidate(candidate))
 						counter++;
 				break;
 		}
-		var("counter", counter, depth);
+		Debug.var("counter", counter, depth);
         return counter;
     }
 
-	// Prints the candidate numbers of the given area.
+	// PRINT //
+
+	// Dilutes the given string (characters separated by spaces)
+	String diluted(String dense) {
+		String thin = "";
+		for(int i = 0; i < dense.length(); i++) {
+			if(i != 0)
+				thin += " ";
+			thin += dense.charAt(i);
+		}
+		return thin;
+	}
+
+	// Returns the name of the given area diluted.
+	String diluted(Area area) {
+		return diluted(area.name());
+	}
+
+	// Prints the cell information horizontally of the given area.
 	void printCells(Area a, int depth) {
-		// log("printCells(area = " + a + "exception = " + exception + ")", depth);
+		// Debug.log("printCells(area = " + a + "exception = " + exception + ")", depth);
 		Position p = new Position(0, 0);
 		int max = Position.getMax();
 		int min = Position.getMin();
@@ -281,8 +371,8 @@ class Matrix extends Print {
 						for(int y = 0; y < min; y++)
 							for(int x = 0; x < min; x++, p.forward(Area.HORIZONTAL)) {
 								c = cellList[blockY * min + y][blockX * min + x];
-								if(c.empty())
-									c.print(depth);
+								if(c.isEmpty())
+									c.println();
 							}
 					}
 				break;
@@ -291,8 +381,8 @@ class Matrix extends Print {
 					System.out.println();
 					for(int x = 0; x < max; x++, p.forward(a)) {
 						c = cellList[y][x];
-						if(c.empty())
-							c.print(depth);
+						if(c.isEmpty())
+							c.println();
 					}
 				}
 				break;
@@ -301,8 +391,8 @@ class Matrix extends Print {
 					System.out.println();
 					for(int y = 0; y < max; y++, p.forward(a)) {
 						c = cellList[y][x];
-						if(c.empty())
-							c.print(depth);
+						if(c.isEmpty())
+							c.println();
 					}
 				}
 				break;
@@ -312,21 +402,18 @@ class Matrix extends Print {
 
 	// Auxiliary method
 	// Prints the horizontal lines in the whole matrix print.
-    void printHorizontalLine(char prefix, boolean showCounter) {
-        System.out.print(prefix);
-        System.out.print(SPACE);
-		if(coordinate.getFormat() == Coordinate.Format.ROWCOL)
-			System.out.print(SPACE);
-        System.out.print(PLUS);
+    void printHorizontalLine(String prefix, boolean showCounter) {
+        System.out.print(prefix + " ");
+		if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
+			System.out.print(" ");
+        System.out.print("+");
         for(int y = 0; y < Position.getMin(); y++) {
             for(int x = 0; x < Position.getMin(); x++) {
-				System.out.print(DASH);
-				System.out.print(DASH);
-				if(coordinate.getFormat() == Coordinate.Format.ROWCOL)
-					System.out.print(DASH);
+				System.out.print("--");
+				if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
+					System.out.print("-");
 			}
-			System.out.print(DASH);
-			System.out.print(PLUS);
+			System.out.print("-+");
         }
         if(showCounter)
             System.out.print(" (" + countAll() + ")");
@@ -337,57 +424,49 @@ class Matrix extends Print {
     void print() {
 		System.out.println();
 		Position xAxis = new Position(0, 0);
-		System.out.print(SPACE);
-		if(coordinate.getFormat() == Coordinate.Format.ROWCOL)
-			System.out.print(SPACE);
+		System.out.print(" ");
+		if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
+			System.out.print(" ");
 		for(int x = 0; x < Position.getMax(); x++, xAxis.forward(Area.HORIZONTAL)) {
-			if(x % Position.getMin() == 0) {
-				System.out.print(SPACE);
-				System.out.print(SPACE);
-			}
-			System.out.print(SPACE);
-			System.out.print(xAxis.X()); // X coordinate
+			if(x % Position.getMin() == 0)
+				System.out.print("  ");
+			System.out.print(" " + xAxis.X()); // X coordinate
 		}
 		System.out.println();
 		Position yAxis = new Position(0, 0);
         for(int y = 0; y < Position.getMax(); y++, yAxis.forward(Area.VERTICAL)) {
             if((y % Position.getMin()) == 0)
-				printHorizontalLine(SPACE, false);
+				printHorizontalLine(" ", false);
 			System.out.print(yAxis.Y()); // Y coordinate
             for(int x = 0; x < Position.getMax(); x++) {
-                if((x % Position.getMin()) == 0) {
-                    System.out.print(SPACE);
-                    System.out.print(PIPE);
-				}
-				System.out.print(SPACE);
-				if(coordinate.getFormat() == Coordinate.Format.ROWCOL)
-					System.out.print(SPACE);
-                if(cellList[y][x].exists()) {
+                if((x % Position.getMin()) == 0)
+                    System.out.print(" |");
+				System.out.print(" ");
+				if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
+					System.out.print(" ");
+                if(cellList[y][x].exists())
                     System.out.print(cellList[y][x].getNumber()); // Number
-				} else {
-					System.out.print(SPACE); // Empty
-				}
+				else
+					System.out.print(" "); // Empty
             }
-            System.out.print(SPACE);
-            System.out.print(PIPE);
-			System.out.println();
+			System.out.println(" |");
         }
-        printHorizontalLine(SPACE, true);
+        printHorizontalLine(" ", true);
 		if(analysis)
 			analyze();
     }
 
 	// Prints the candidates grouped by areas (block, horizontal, vertical).
     void analyze() {
-		boolean memory = Print.getDebug();
-		Print.setDebug(true);
+		boolean memory = Debug.get();
+		Debug.set(true);
 		int depth = 0;
 		System.out.println();
 		System.out.println(diluted("ANALYSIS"));
 		printCells(Area.BLOCK, depth);
 		printCells(Area.HORIZONTAL, depth);
 		printCells(Area.VERTICAL, depth);
-		Print.setDebug(memory);
+		Debug.set(memory);
 		System.out.println();
     }
 }

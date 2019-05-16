@@ -10,31 +10,26 @@ public class Coordinate {
 		SUDOKU; // Y=A-I, X=1-9
 	}
 
-	private static final Coordinate instance = new Coordinate();
 	private static Format format = Format.JAVA;
 
     private Coordinate() {
 	}
 
-    public static Coordinate getInstance() {
-        return instance;
-    }
-
-	public void setFormat(Format s) {
+	public static boolean setFormat(Format s) {
 		format = s;
+		return true;
 	}
 
-	public boolean setFormat(String name) {
+	public static boolean setFormat(String name) {
 		for(Format s: Format.values())
 			if(name.equals(s.name())) {
-				setFormat(s);
-				return true;
+				return setFormat(s);
 			}
 		System.out.println("Unsupported coordinate mode: " + name);
 		return false;
 	}
 
-	public Format getFormat() {
+	public static Format getFormat() {
 		return format;
 	}
 
@@ -45,7 +40,7 @@ public class Coordinate {
 	// ROWCOL: R1-R9
 	// SUDOKU: A-I
 	//
-	boolean validY(String y, int max) {
+	public static boolean validY(String y, int max) {
 		// Check prefix R - ROWCOL
 		if(format == Format.ROWCOL) {
 			if(y.charAt(0) != 'R')
@@ -78,7 +73,7 @@ public class Coordinate {
 	// ROWCOL: C1-C9
 	// SUDOKU: 1-9
 	//
-	boolean validX(String x, int max) {
+	public static boolean validX(String x, int max) {
 		// Check prefix C - ROWCOL
 		if(format == Format.ROWCOL) {
 			if(x.charAt(0) != 'C')
@@ -108,7 +103,7 @@ public class Coordinate {
 	// ROWCOL: R1-R9
 	// SUDOKU: A-I
 	//
-	int readY(String y, int max) {
+	public static int readY(String y, int max) {
 		int i = 0;
 		// Remove prefix R - ROWCOL
 		if(format == Format.ROWCOL)
@@ -134,7 +129,7 @@ public class Coordinate {
 	// ROWCOL: C1-C9
 	// SUDOKU: 1-9
 	//
-	int readX(String x) {
+	public static int readX(String x) {
 		int i = 0;
 		// Check prefix C - ROWCOL
 		if(format == Format.ROWCOL)
@@ -151,7 +146,7 @@ public class Coordinate {
 	}
 
 	// Returns the y according to the coordinate format.
-	public String Y(int y, int max) {
+	public static String Y(int y, int max) {
 		String s = null;
 		Integer i = y;
 		switch(format) {
@@ -175,7 +170,7 @@ public class Coordinate {
 	}
 
 	// Returns the x according to the coordinate format.
-	public String X(int x) {
+	public static String X(int x) {
 		String s = null;
 		Integer i = x;
 		switch(format) {

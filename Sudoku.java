@@ -1,9 +1,8 @@
 import java.util.Scanner;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
-class Sudoku extends Print {
+class Sudoku {
     private static final int MAX = 9;
     private static final int TOTAL = MAX * MAX;
 
@@ -14,7 +13,6 @@ class Sudoku extends Print {
     private int passages = 0;
     private long startTime = 0;
     private long endTime = 0;
-	private static final Coordinate coordinate = Coordinate.getInstance();
 	private ArrayList<Method> methodList = new ArrayList<Method>();
 	private ArrayList<Position> goList = new ArrayList<Position>();
     private Scanner in = new Scanner(System.in);
@@ -36,11 +34,11 @@ class Sudoku extends Print {
 		String y = go.substring(0, middle);
 		String x = go.substring(middle, length);
 		int max = Position.getMax();
-		if(!coordinate.validY(y, max) || !coordinate.validX(x, max)) {
+		if(!Coordinate.validY(y, max) || !Coordinate.validX(x, max)) {
 			System.out.println("Incompatible coordinates: " + go);
 			return false;
 		}
-		Position p = new Position(coordinate.readY(y, max), coordinate.readX(x));
+		Position p = new Position(Coordinate.readY(y, max), Coordinate.readX(x));
 		goList.add(p);
 		return true;
 	}
@@ -78,7 +76,7 @@ class Sudoku extends Print {
 
     void run() {
 		System.out.println();
-		System.out.println(diluted("SUDOKU"));
+		System.out.println(matrix.diluted("SUDOKU"));
 		if(interactive)
 			System.out.println();
         String row = null;
@@ -97,12 +95,12 @@ class Sudoku extends Print {
             int length = (row != null)? row.length(): 0;
             for(int x = 0; x < Position.getMax(); x++, p.forward(Area.HORIZONTAL))
                 if(x < length)
-                    if(row.charAt(x) == SPACE)
-                        matrix.setNumber(p, 0);
+                    if(row.charAt(x) == ' ')
+                        matrix.setNumber(p, 0, 0);
                     else
-                        matrix.setNumber(p, row.charAt(x) - Coordinate.ZERO);
+                        matrix.setNumber(p, row.charAt(x) - Coordinate.ZERO, 0);
                 else
-					matrix.setNumber(p, 0);
+					matrix.setNumber(p, 0, 0);
         }
 		matrix.print();
 		if(solution)
@@ -133,9 +131,9 @@ class Sudoku extends Print {
 	// R9|   |   |   |   | 9 |   |   |   |   |
 	//   |===========|===========|===========|
     int setFullHouse(int y, int x, int depth) {
-		log("setFullHouse(y = " + y + ", x = " + x + ")", depth++);
+		Debug.log("setFullHouse(y = " + y + ", x = " + x + ")", depth++);
 		int added = 0;
-		if(matrix.empty(y, x)) {
+		if(matrix.isEmpty(y, x)) {
 			Position p = new Position(y, x);
 			if(verbose)
 				System.out.println(matrix.cell(p));
@@ -144,9 +142,9 @@ class Sudoku extends Print {
 				if((matrix.count(Area.BLOCK, y, x, missing, depth) == max - 1) ||
 				  (matrix.count(Area.HORIZONTAL, y, x, missing, depth) == max - 1) ||
 				  (matrix.count(Area.VERTICAL, y, x, missing, depth) == max - 1)) {
-					added += matrix.setNumber(p, missing);
+					added += matrix.setNumber(p, missing, depth);
 					if(verbose)
-						System.out.println(" >> " + Method.FULL_HOUSE.name() + " >> " + missing);
+						System.out.println(Method.FULL_HOUSE.name() + " >> " + missing);
 					break;
 				}
 			}
@@ -155,7 +153,7 @@ class Sudoku extends Print {
     }
 
     int setAllFullHouses(int depth) {
-		log("setAllFullHouses()", depth++);
+		Debug.log("setAllFullHouses()", depth++);
 		int added = 0;
 		Position p = new Position(0, 0);
 		int max = Position.getMax();
@@ -189,24 +187,24 @@ class Sudoku extends Print {
 	// R9|   |   |   |   |   |   |   |   |   |
 	//   |===========|===========|===========|
     int setNakedSingle(int y, int x, int depth) {
-		log("setNakedSingle(y = " + y + ", x = " + x + ")", depth++);
+		Debug.log("setNakedSingle(y = " + y + ", x = " + x + ")", depth++);
 		int added = 0;
-		if(matrix.empty(y, x)) {
+		if(matrix.isEmpty(y, x)) {
 			Position p = new Position(y, x);
 			if(verbose)
 				System.out.println(matrix.cell(p));
-			if(matrix.candidateCount(y, x) == 1) {
-				int single = matrix.getFirstCandidate(y, x);
-				added += matrix.setNumber(p, single);
+			if(matrix.countCandidates(y, x) == 1) {
+				int single = matrix.getCandidateAt(y, x, 0);
+				added += matrix.setNumber(p, single, depth);
 				if(verbose)
-					System.out.println(" >> " + Method.NAKED_SINGLE.name() + " >> " + single);
+					System.out.println(Method.NAKED_SINGLE.name() + " >> " + single);
 			}
 		}
 		return added;
     }
 
     int setAllNakedSingles(int depth) {
-		log("setAllNakedSingles()", depth++);
+		Debug.log("setAllNakedSingles()", depth++);
 		int added = 0;
 		Position p = new Position(0, 0);
 		int max = Position.getMax();
@@ -241,20 +239,21 @@ class Sudoku extends Print {
 	// R9|   |   |   |   |   |   |   |   |   |
 	//   |===========|===========|===========|
 	int setHiddenSingle(int y, int x, int depth) {
-		log("setHiddenSingle(y = " + y + ", x = " + x + ")", depth++);
+		Debug.log("setHiddenSingle(y = " + y + ", x = " + x + ")", depth++);
 		int added = 0;
-		if(matrix.empty(y, x)) {
+		if(matrix.isEmpty(y, x)) {
 			Position p = new Position(y, x);
 			if(verbose)
 				System.out.println(matrix.cell(p));
 			int max = Position.getMax();
 			for(int hidden = 1; hidden <= max; hidden++) {
-				if((matrix.candidateCountIf(Area.BLOCK, y, x, hidden, depth) == 1) ||
-				  (matrix.candidateCountIf(Area.HORIZONTAL, y, x, hidden, depth) == 1) ||
-				  (matrix.candidateCountIf(Area.VERTICAL, y, x, hidden, depth) == 1)) {
-					added += matrix.setNumber(p, hidden);
+				if((matrix.existsCandidate(y, x, hidden)) &&
+				  (matrix.countCandidateIf(Area.BLOCK, y, x, hidden, depth) == 1) ||
+				  (matrix.countCandidateIf(Area.HORIZONTAL, y, x, hidden, depth) == 1) ||
+				  (matrix.countCandidateIf(Area.VERTICAL, y, x, hidden, depth) == 1)) {
+					added += matrix.setNumber(p, hidden, depth);
 					if(verbose)
-						System.out.println(" >> " + Method.HIDDEN_SINGLE.name() + " >> " + hidden);
+						System.out.println(Method.HIDDEN_SINGLE.name() + " >> " + hidden);
 					break;
 				}
 			}
@@ -263,7 +262,7 @@ class Sudoku extends Print {
 	}
 
     int setAllHiddenSingles(int depth) {
-		log("setAllHiddenSingles()", depth++);
+		Debug.log("setAllHiddenSingles()", depth++);
 		int added = 0;
 		Position p = new Position(0, 0);
 		int max = Position.getMax();
@@ -273,120 +272,55 @@ class Sudoku extends Print {
 		return added;
     }
 
-	/*
-    ArrayList<Pair> pairsArea(Area a, int row, int column, int depth) {
-		log("pairsArea(area = " + a + ", row = " + row + ", column = " + column + ")", depth++);
-		ArrayList<Pair> pairList = new ArrayList<Pair>();
-		switch(a) {
-			case ALL:
-				for(int y = 0; y < Position.getMax(); y++)
-					for(int x = 0; x < Position.getMax(); x++) {
-						Position point = new Position(y, x);
-						if(countArea(Area.NUMBER, y, x, depth) == 2) {
-							Pair pair = new Pair();
-							for(int number = 1; number <= Position.getMax(); number++)
-								if(s[y][x][number] == number) {
-									Cell cell = new Cell(point, number);
-									pair.cellList.add(cell);
-								}
-							pairList.add(pair);
-						}
-					}
-				break;
-			case BLOCK:
-				for(int i = 0, y = blockBase(row); i < Position.getMin(); i++, y++)
-					for(int j = 0, x = blockBase(column); j < Position.getMin(); j++, x++) {
-						Position point = new Position(y, x);
-						if(countArea(Area.NUMBER, y, x, depth) == 2) {
-							Pair pair = new Pair();
-							for(int number = 1; number <= Position.getMax(); number++)
-								if(s[y][x][number] == number) {
-									Cell cell = new Cell(point, number);
-									pair.cellList.add(cell);
-								}
-							pairList.add(pair);
-						}
-					}
-				break;
-			case HORIZONTAL:
-				for(int x = 0; x < Position.getMax(); x++) {
-					Position point = new Position(row, x);
-					if(countArea(Area.NUMBER, row, x, depth) == 2) {
-						Pair pair = new Pair();
-						for(int number = 1; number <= Position.getMax(); number++)
-							if(s[row][x][number] == number) {
-								Cell cell = new Cell(point, number);
-								pair.cellList.add(cell);
-							}
-						pairList.add(pair);
-					}
-				}
-				break;
-			case VERTICAL:
-				for(int y = 0; y < Position.getMax(); y++) {
-					Position point = new Position(y, column);
-					if(countArea(Area.NUMBER, y, column, depth) == 2) {
-						Pair pair = new Pair();
-						for(int number = 1; number <= Position.getMax(); number++)
-							if(s[y][column][number] == number) {
-								Cell cell = new Cell(point, number);
-								pair.cellList.add(cell);
-							}
-						pairList.add(pair);
-					}
-				}
-				break;
-		}
-		return pairList;
-	}
-
-	int twinPairs(ArrayList<Pair> pairList) {
-	}
-
-    // Check for multiple naked pairs per area and unset the candidates.
+	// Naked Pair aka Conjugate Pair
+    // The "naked pair" solving technique is an intermediate solving technique.
+	// In this technique the Sudoku is scanned for a pair of cells in a row, column or box
+	// containing only the same two candidates.
+	// Since these candidates must go in these cells, they can therefore be removed from the
+	// candidate lists of all other unsolved cells in that row, column or box.
 	// 
-	//     B  B  B                                                      V
-	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	// B |13| 6|12|  |  |  |  |  |  | H | 6|12| 7| 8|12|13|95|24|49|  |13|  |  |  |  |  |  |  |  |
-	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	// B |94|12| 7|  |  |  |  |  |  |   |  |  |  |  |  |  |  |  |  |  |12|  |  |  |  |  |  |  |  |
-	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	// B |49| 8|24|  |  |  |  |  |  |   |  |  |  |  |  |  |  |  |  |  |12|  |  |  |  |  |  |  |  |
-	//   +--+--+--|--+--+--|--+--+--+   +--+--+--|--+--+--|--+--+--+  +--+--+--|--+--+--|--+--+--+
-	//    Example Block                  Example Horizontal            Example Vertical
-    int setNakedPair(int row, int column, int number, int depth) {
-		log("setNakedPair(row = " + row + ", column = " + column + ", number = " + number + ")", depth++);
-		int added = 0;
-		ArrayList<Pair> pairList = pairsArea(Area.BLOCK, row, column, depth);
-		int pairs = pairList.size();
-		var("pairs", pairs, depth);
-		for(int p = 0; p < pairs; p++) {
-			int first = pairList.get(p).value();
-			for(int q = p; q < pairs; q++) {
-				int second = pairList.get(q).value();
-				if(first == second) {
-					ArrayList<Cell> cellList = matrix.horizontal(row);
-					cellList.removeCandidate(matrix.cells(first.point));
-					cellList.removeCandidate(matrix.cells(second.point));
-					matrix.removeCandidate(int number, cellList);
+    int setNakedPair(int y, int x, int depth) {
+		Debug.log("setNakedPair(y = " + y + ", x = " + x + ")", depth++);
+		if(matrix.isEmpty(y, x)) {
+			Position p = new Position(y, x);
+			if(verbose)
+				System.out.println(matrix.cell(p));
+			ArrayList<Position> exceptions = new ArrayList<Position>();
+			if(matrix.countCandidates(y, x) == 2) {
+				exceptions.add(p);
+				ArrayList<Integer> numbers = matrix.getCandidates(y, x);
+				for(Area a: Area.values()) {
+					Position q = matrix.findCandidate(a, p, numbers, exceptions, depth);
+					if(q != null) {
+						exceptions.add(q);
+						if(verbose)
+							System.out.println(Method.NAKED_PAIR.name() +
+								" >> " + matrix.getCandidates(y, x).toString() +
+								" @ " + p.toString() +
+								" + " + q.toString());
+						for(Integer c: numbers)
+							matrix.removeCandidate(a, p, c, exceptions, depth);
+					}
 				}
 			}
 		}
-		pairList = pairsArea(Area.HORIZONTAL, row, column, depth);
-		var("pairs", pairList.size(, depth));
-		pairList = pairsArea(Area.VERTICAL, row, column, depth);
-		var("pairs", pairList.size(), depth);
-		// added += setNumber(row, column, number);
-		var("added", added, depth);
-		if(verbose && (added > 0))
-			System.out.println(" >> " + Method.XXXXXXXXXXXX.name() + " >> " + number);
+		return 0;
+    }
+
+    int setAllNakedPairs(int depth) {
+		Debug.log("setAllNakedPairs()", depth++);
+		int added = 0;
+		Position p = new Position(0, 0);
+		int max = Position.getMax();
+		for(int y = 0; y < max; y++)
+			for(int x = 0; x < max; x++, p.forward(Area.HORIZONTAL))
+				added += setNakedPair(y, x, depth);
 		return added;
     }
-	*/
 
     void solve() {
 		int depth = 0;
-		log("solve()", depth++);
+		Debug.log("solve()", depth++);
         startTime = System.nanoTime();
 		if(methodList.size() == 0)
 			for(Method method: Method.values())
@@ -401,11 +335,9 @@ class Sudoku extends Print {
 					added += setNakedSingle(p.getY(), p.getX(), depth);
 				if(methodList.contains(Method.HIDDEN_SINGLE))
 					added += setHiddenSingle(p.getY(), p.getX(), depth);
-				/*
 				if(methodList.contains(Method.NAKED_PAIR))
-					added += setNakedPair(p.getY(), p.getX(), number, depth);
-				*/
-				var("added", added, depth);
+					added += setNakedPair(p.getY(), p.getX(), depth);
+				Debug.var("added", added, depth);
 				if((added > 0) && verbose)
 					matrix.print();
 			}
@@ -420,11 +352,9 @@ class Sudoku extends Print {
 					added += setAllNakedSingles(depth);
 				if(methodList.contains(Method.HIDDEN_SINGLE))
 					added += setAllHiddenSingles(depth);
-				/*
 				if(methodList.contains(Method.NAKED_PAIR))
-					added += setAllNakedPair(y, x, number, depth);
-				*/
-				var("added", added, depth);
+					added += setAllNakedPairs(depth);
+				Debug.var("added", added, depth);
 				if((added > 0) && verbose)
 					matrix.print();
 				if(interactive) {
@@ -446,7 +376,7 @@ class Sudoku extends Print {
 
     void statistics() {
 		System.out.println();
-		System.out.println(diluted("STATISTICS"));
+		System.out.println(matrix.diluted("STATISTICS"));
 		System.out.println();
         System.out.println("passages " + passages);
         String unit = "ns";
@@ -547,7 +477,7 @@ class Sudoku extends Print {
 					else if(argument.equals("-c") || argument.equals("--coordinate"))
 						value = "-c";
 					else if(argument.equals("-d") || argument.equals("--debug"))
-						Print.setDebug(true);
+						Debug.set(true);
 					else if(argument.equals("-g") || argument.equals("--go"))
 						value = "-g";
 					else if(argument.equals("-h") || argument.equals("--help")) {
@@ -568,7 +498,7 @@ class Sudoku extends Print {
 					}
 				} else
 					if(value.equals("-c")) {
-						if(!coordinate.setFormat(argument))
+						if(!Coordinate.setFormat(argument))
 							return;
 						value = null;
 					} else if(value.equals("-g")) {
