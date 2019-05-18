@@ -8,43 +8,45 @@ class Cell {
 
 	private int number = MISSING;
 	private ArrayList<Integer> candidates;
-	private Position point; // for printing purposes
+	private Position position; // for printing purposes
 
-	Cell(Position p) {
-		point = new Position(p);
+	Cell(Position position) {
+		setPosition(position);
 		number = MISSING;
-		candidates = allNumbers(p.getMax());
+		candidates = allNumbers(position.getMax());
 	}
 
-	Cell(Position p, int n) {
-		point = p;
-		number = n;
+	Cell(Position position, int number) {
+		setPosition(position);
+		setNumber(number);
 	}
 
-	boolean equals(int n) {
-		return (number == n);
+	boolean equals(int number) {
+		return (number == this.number);
 	}
 
-	boolean equals(Cell c) {
-		return (number == c.number);
+	boolean equals(Cell cell) {
+		return (number == cell.number);
 	}
 
 	// POINT //
 	
-	void setPoint(Position p) {
-		point = p;
+	void setPosition(Position position) {
+		if(position == null)
+			throw new IllegalArgumentException();
+		this.position = new Position(position);
 	}
 
-	Position getPoint() {
-		return point;
+	Position getPosition() {
+		return position;
 	}
 
 	// NUMBER //
 
-	void setNumber(int n) {
-		if(n == MISSING)
+	void setNumber(int number) {
+		if(number == MISSING)
 			return;
-		number = n;
+		this.number = number;
 		candidates.clear();
 	}
 
@@ -78,8 +80,8 @@ class Cell {
 
 	// CANDIDATES //
 	
-	void setCandidate(int n) {
-		candidates.add(n);
+	void setCandidate(int number) {
+		candidates.add(number);
 	}
 
 	void setCandidates(ArrayList<Integer> l) {
@@ -92,8 +94,8 @@ class Cell {
 
 	ArrayList<Integer> allNumbers(int max) {
 		ArrayList<Integer> all = new ArrayList<Integer>();
-		for(int n = 1; n <= max; n++)
-			all.add(n);
+		for(int number = 1; number <= max; number++)
+			all.add(number);
 		return all;
 	}
 
@@ -101,15 +103,15 @@ class Cell {
 		return sample.equals(candidates);
 	}
 
-	boolean existsCandidate(int c) {
-		int index = candidates.indexOf(c);
+	boolean existsCandidate(int number) {
+		int index = candidates.indexOf(number);
         if(index >= 0)
 			return true;
 		return false;
 	}
 
-	void removeCandidate(int c) {
-		int index = candidates.indexOf(c);
+	void removeCandidate(int number) {
+		int index = candidates.indexOf(number);
 		if(index >= 0)
 			candidates.remove(index);
 	}
@@ -125,15 +127,15 @@ class Cell {
 	// PRINT //
 
 	public String toString() {
-		String s = "Cell" + point.toString();
-		if(number == MISSING)
-			s += " ?";
+		String s = "Cell" + position;
+		if(number == MISSING) {
+			s += " Candidates" + candidates;
+			int size = candidates.size();
+			if((size > 0) && (size < MULTIPLE.length))
+				s += " - " + MULTIPLE[size];
+		}
 		else
-			s += " " + number;
-		s += " - " + candidates.toString();
-		int size = candidates.size();
-		if((size > 0) && (size < MULTIPLE.length))
-			s += " << " + MULTIPLE[size] + " >>";
+			s += " Number(" + number + ")";
 		return s;
 	}
 

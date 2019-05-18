@@ -1,5 +1,4 @@
 public enum Area {
-	POINT, // 1 x 1
 	BUCKET_HORIZONTAL, // 1 x 3
 	BUCKET_VERTICAL, // 3 x 1
 	DIAGONAL, // used only for Position.forward() & Position.backward()

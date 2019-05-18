@@ -1,13 +1,15 @@
 import java.util.stream.IntStream;
 
 class Debug {
+	public static final int NO_DEPTH = 0;
+
 	private static boolean DEBUG = false;
 
 	private Debug() {
 	}
 
-	static void set(boolean d) {
-		DEBUG = d;
+	static void set(boolean debug) {
+		DEBUG = debug;
 	}
 
 	static boolean get() {

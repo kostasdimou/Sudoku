@@ -1,5 +1,6 @@
 import java.util.stream.IntStream;
 import java.lang.Math;
+import java.lang.IllegalArgumentException;
 
 class Position {
     public static final int NOT_FOUND = -1;
@@ -16,13 +17,13 @@ class Position {
 	}
 
 	Position(int y, int x) {
-		this.y = y;
-		this.x = x;
+		setY(y);
+		setX(x);
 	}
 
-	Position(Position p) {
-		y = p.y;
-		x = p.x;
+	Position(Position position) {
+		setY(position.y);
+		setX(position.x);
 	}
 
 	public static void setMax(int max) {
@@ -38,7 +39,23 @@ class Position {
 		return MIN;
 	}
 
-	public void setY(int y) {
+	// Checks the range of the coordinate.
+	boolean valid(int i) {
+		if((i != NOT_FOUND) && ((i < 0) || (i >= MAX)))
+			return false;
+		return true;
+	}
+
+	// Checks the range of the coordinates.
+	boolean valid(int y, int x) {
+		if(valid(y))
+			return valid(x);
+		return false;
+	}
+
+	public void setY(int y) throws IllegalArgumentException {
+		if(!valid(y))
+			throw new IllegalArgumentException();
 		this.y = y;
 	}
 
@@ -46,7 +63,9 @@ class Position {
 		return y;
 	}
 
-	public void setX(int x) {
+	public void setX(int x) throws IllegalArgumentException {
+		if(!valid(x))
+			throw new IllegalArgumentException();
 		this.x = x;
 	}
 
@@ -73,22 +92,26 @@ class Position {
 		System.out.println(toString());
 	}
 
-	boolean equals(int row, int column) {
-		if(row == y)
-			return (column == x);
+	// Position comparison.
+	boolean equals(int y, int x) {
+		if(y == this.y)
+			return (x == this.x);
 		return false;
 	}
 
-	boolean equals(Position p) {
-		if(p == null)
+	// Overriding Object.equals.
+	boolean equals(Position x) {
+		if(x == null)
 			return false;
-		return equals(p.y, p.x);
+		if(x == this)
+			return true;
+		return equals(x.y, x.x);
 	}
 
 	// Returns the position of the container block
 	Position base() {
-		Position p = new Position(y / MIN * MIN, x / MIN * MIN);
-		return p;
+		Position position = new Position(y / MIN * MIN, x / MIN * MIN);
+		return position;
 	}
 
 	// Increments the position according to the given area
@@ -161,16 +184,16 @@ class Position {
 
 	// Returns the adjacent position according to the given area, excluding the exception
 	Position next(Area a, int step, Position exception) {
-		Position p = base();
+		Position position = base();
 		switch(a) {
 			case HORIZONTAL:
 			case VERTICAL:
-				for(int i = 0; i < MIN * step; i++, p.forward(a, step)) {
-					if(p.equals(this))
+				for(int i = 0; i < MIN * step; i++, position.forward(a, step)) {
+					if(position.equals(this))
 						continue;
-					else if(p.equals(exception))
+					else if(position.equals(exception))
 						continue;
-					return p;
+					return position;
 				}
 				break;
 		}
