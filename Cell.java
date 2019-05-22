@@ -4,7 +4,7 @@ import java.lang.IllegalArgumentException;
 class Cell {
     public static final int MISSING = 0;
 
-	private static final String[] MULTIPLE = {"NOTHING", "SINGLE", "PAIR", "TRIPLE"};
+	private static final String[] MULTIPLE = {"NOTHING", "SINGLE", "PAIR", "TRIPLE", "QUAD", "QUINT"};
 
 	private int number = MISSING;
 	private ArrayList<Integer> candidates;
@@ -99,8 +99,20 @@ class Cell {
 		return all;
 	}
 
-	boolean equalsCandidates(ArrayList<Integer> sample) {
-		return sample.equals(candidates);
+	boolean equalsCandidates(ArrayList<Integer> numbers) {
+		return numbers.equals(candidates);
+	}
+
+	boolean subsetCandidates(ArrayList<Integer> numbers, int minimum) {
+		int counter = 0;
+		for(Integer number: candidates)
+			if(numbers.indexOf(number) == -1)
+				return false;
+			else
+				counter++;
+		if(counter >= minimum)
+			return true;
+		return false;
 	}
 
 	boolean existsCandidate(int number) {
@@ -140,6 +152,6 @@ class Cell {
 	}
 
 	void println() {
-		System.out.println(toString());
+		System.out.println(this);
 	}
 }

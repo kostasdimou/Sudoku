@@ -56,22 +56,31 @@ then
 		# [ $? = 0 ] && execute java Sudoku -g 26 -s -m NAKED_PAIR -v -d < Sudoku.0011
 		# --method NAKED_TRIPLE
 		# [ $? = 0 ] && execute java Sudoku -g 04 -s -m NAKED_TRIPLE -v -d < Sudoku.0012
-		[ $? = 0 ] && execute java Sudoku -g 41 -s -m NAKED_TRIPLE -v -d < Sudoku.0013
+		# [ $? = 0 ] && execute java Sudoku -g 41 -s -m NAKED_TRIPLE -v -d < Sudoku.0013
+		# --method NAKED_QUAD
+		# [ $? = 0 ] && execute java Sudoku -g 70 -s -m NAKED_QUAD -v -d < Sudoku.0014
+		# [ $? = 0 ] && execute java Sudoku -g 62 -s -m NAKED_QUAD -v -d < Sudoku.0015
 		# --method HIDDEN_SINGLE
 		# [ $? = 0 ] && execute java Sudoku -g 00 -s -m HIDDEN_SINGLE -v < Sudoku.0001
 		# [ $? = 0 ] && execute java Sudoku -g 00 -s -m HIDDEN_SINGLE -v < Sudoku.0004
 		# [ $? = 0 ] && execute java Sudoku -g 00 -s -m HIDDEN_SINGLE -v < Sudoku.0005
 		# --solve --verbose
-		VERBOSE=-v
-		# [ $? = 0 ] && execute java Sudoku -s $VERBOSE < Sudoku.0012 # 42 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s $VERBOSE < Sudoku.0013 # 38 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s $VERBOSE < Sudoku.0011 # 37 -> 37
-		# [ $? = 0 ] && execute java Sudoku -s $VERBOSE < Sudoku.0002 # 30 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s $VERBOSE < Sudoku.0003 # 27 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s $VERBOSE < Sudoku.0010 # 26 -> 27
-		# [ $? = 0 ] && execute java Sudoku -s $VERBOSE < Sudoku.0006 # 24 -> 26
-		# [ $? = 0 ] && execute java Sudoku -s $VERBOSE < Sudoku.0007 # 23 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s $VERBOSE < Sudoku.0008 # 18 -> 21
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0013 # 58 -> solved
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0014 # 50 -> solved
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0012 # 42 -> solved
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0015 # 41 -> solved
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0011 # 37 -> 37
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0002 # 30 -> solved
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0003 # 27 -> solved
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0010 # 26 -> 27
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0006 # 24 -> 26
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0007 # 23 -> solved
+		# [ $? = 0 ] && execute java Sudoku -s --verbose < Sudoku.0008 # 18 -> 21
+		# --solve
+		# [ $? = 0 ] && execute java Sudoku -s < Sudoku.0011 # 37 -> 37
+		# [ $? = 0 ] && execute java Sudoku -s < Sudoku.0010 # 26 -> 27
+		# [ $? = 0 ] && execute java Sudoku -s < Sudoku.0006 # 24 -> 26
+		# [ $? = 0 ] && execute java Sudoku -s < Sudoku.0008 # 18 -> 21
 	else
 		echo ===== DEMO =====
 		execute java Sudoku --help

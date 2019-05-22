@@ -232,31 +232,18 @@ class Matrix {
 	}
 
 	// Removes the candidates from the given area.
-	ArrayList<Position> matchCandidates(Area area, Position position, ArrayList<Integer> numbers, int depth) {
-    	Debug.log("matchCandidates(area = " + area + ", position = " + position + ", numbers = " + numbers + ")", depth++);
+	ArrayList<Position> matchCandidates(Area area, Position position, ArrayList<Integer> numbers, int minimum, int depth) {
+    	Debug.log("matchCandidates(area = " + area + ", position = " + position + ", numbers = " + numbers + ", minimum = " + minimum + ")", depth++);
 		ArrayList<Cell> areaCells = getCells(area, position, depth);
 		ArrayList<Position> matches = new ArrayList<Position>();
 		for(Cell cell: areaCells) {
+			Debug.log("--> cell: " + cell, depth);
 			Position target = cell.getPosition();
-			if(cell.equalsCandidates(numbers))
+			Debug.log("--> target: " + target, depth);
+			if(cell.subsetCandidates(numbers, minimum)) {
+				Debug.log("--> subset: TRUE", depth);
 				matches.add(target);
-		}
-		return matches;
-	}
-
-	// Removes the candidates from the given area with exceptions.
-	ArrayList<Position> matchCandidatesIf(Area area, Position position, ArrayList<Integer> numbers, ArrayList<Position> exceptions, int depth) {
-    	Debug.log("matchCandidatesIf(area = " + area + ", position = " + position + ", numbers = " + numbers + ", exceptions = " + exceptions + ")", depth++);
-		ArrayList<Cell> areaCells = getCells(area, position, depth);
-		ArrayList<Position> matches = new ArrayList<Position>();
-		for(Cell cell: areaCells) {
-			Position target = cell.getPosition();
-			if(target.equals(position))
-				continue;
-			if(exceptions.contains(target))
-				continue;
-			if(cell.equalsCandidates(numbers))
-				matches.add(target);
+			}
 		}
 		return matches;
 	}
