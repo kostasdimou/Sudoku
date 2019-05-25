@@ -3,7 +3,7 @@ import java.lang.Math;
 import java.lang.IllegalArgumentException;
 
 class Position {
-    public static final int NOT_FOUND = -1;
+	public static final int NOT_FOUND = -1;
 
 	private static int MAX = 9;
 	private static int MIN = (int)Math.sqrt(MAX);

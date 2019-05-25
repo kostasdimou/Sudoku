@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.lang.IllegalArgumentException;
 
 class Cell {
-    public static final int MISSING = 0;
+	public static final int MISSING = 0;
 
 	private static final String[] MULTIPLE = {"NOTHING", "SINGLE", "PAIR", "TRIPLE", "QUAD", "QUINT"};
 
@@ -54,25 +54,25 @@ class Cell {
 		return number;
 	}
 
-    int count(int exception) {
+	int count(int exception) {
 		if((number != MISSING) && (number != exception))
 			return 1;
 		return 0;
 	}
 
-    int count() {
+	int count() {
 		if(number != MISSING)
 			return 1;
 		return 0;
 	}
 
-    boolean isEmpty() {
+	boolean isEmpty() {
 		if(number == MISSING)
 			return true;
 		return false;
 	}
 
-    boolean exists() {
+	boolean exists() {
 		if(number == MISSING)
 			return false;
 		return true;
@@ -117,7 +117,7 @@ class Cell {
 
 	boolean existsCandidate(int number) {
 		int index = candidates.indexOf(number);
-        if(index >= 0)
+		if(index >= 0)
 			return true;
 		return false;
 	}
@@ -128,11 +128,11 @@ class Cell {
 			candidates.remove(index);
 	}
 
-    int countCandidates() {
+	int countCandidates() {
 		return candidates.size();
 	}
 
-    int getCandidateAt(int index) {
+	int getCandidateAt(int index) {
 		return candidates.get(index);
 	}
 

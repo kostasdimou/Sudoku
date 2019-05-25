@@ -3,19 +3,19 @@ import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 class Sudoku {
-    private static final int MAX = 9;
-    private static final int TOTAL = MAX * MAX;
+	private static final int MAX = 9;
+	private static final int TOTAL = MAX * MAX;
 
 	private static boolean INTERACTIVE = false;
 	private static boolean SOLVE = false;
 	private static boolean VERBOSE = false;
 
-    private int passages = 0;
-    private long startTime = 0;
-    private long endTime = 0;
+	private int passages = 0;
+	private long startTime = 0;
+	private long endTime = 0;
 	private ArrayList<Method> methodList = new ArrayList<Method>();
 	private ArrayList<Position> goList = new ArrayList<Position>();
-    private Scanner in = new Scanner(System.in);
+	private Scanner in = new Scanner(System.in);
 	private Matrix matrix = new Matrix(MAX);
 
 	public enum Method {
@@ -48,7 +48,7 @@ class Sudoku {
 	}
 
 	// Stores the points and numbers combinations we want to examine during solution.
-    boolean setGo(String go) {
+	boolean setGo(String go) {
 		go = go.toUpperCase();
 		int length = go.length();
 		int middle = length / 2;
@@ -66,12 +66,12 @@ class Sudoku {
 
 	// Activates the INTERACTIVE mode.
 	// The user is prompt to provide the numbers and blanks for populating the matrix.
-    void setInteractive() {
+	void setInteractive() {
 		INTERACTIVE = true;
 	}
 
 	// Stores the methods we want to utilize for the solution.
-    boolean setActive(String methodName) {
+	boolean setActive(String methodName) {
 		boolean found = false;
 		for(Method method: Method.values())
 			if(methodName.equals(method.name())) {
@@ -89,44 +89,44 @@ class Sudoku {
 	}
 
 	// Activates the SOLVE mode.
-    void setSolve() {
+	void setSolve() {
 		SOLVE = true;
 	}
 
 	// Activates the VERBOSE mode.
 	// Displays the actions and the matrix for each solution passage.
-    void setVerbose() {
+	void setVerbose() {
 		VERBOSE = true;
 	}
 
-    void read(int depth) {
+	void read(int depth) {
 		Debug.log("read()", depth++);
-        String row = null;
+		String row = null;
 		Position position = new Position(0, 0);
-        for(int y = 0; y < Position.getMax(); y++) {
-            if(INTERACTIVE)
-                System.out.print("ROW[" + y + "] = ");
-            try {
-                row = in.nextLine();
-            } catch(NoSuchElementException e) {
-                row = null; // empty line
-            } catch(Exception e) {
+		for(int y = 0; y < Position.getMax(); y++) {
+			if(INTERACTIVE)
+				System.out.print("ROW[" + y + "] = ");
+			try {
+				row = in.nextLine();
+			} catch(NoSuchElementException e) {
+				row = null; // empty line
+			} catch(Exception e) {
 				System.out.println(e);
-                return;
-            }
-            int length = (row != null)? row.length(): 0;
-            for(int x = 0; x < Position.getMax(); x++, position.forward(Area.HORIZONTAL))
-                if(x < length)
-                    if(row.charAt(x) == ' ')
-                        matrix.setNumber(position, 0, depth);
-                    else
-                        matrix.setNumber(position, row.charAt(x) - Coordinate.ZERO, depth);
-                else
+				return;
+			}
+			int length = (row != null)? row.length(): 0;
+			for(int x = 0; x < Position.getMax(); x++, position.forward(Area.HORIZONTAL))
+				if(x < length)
+					if(row.charAt(x) == ' ')
+						matrix.setNumber(position, 0, depth);
+					else
+						matrix.setNumber(position, row.charAt(x) - Coordinate.ZERO, depth);
+				else
 					matrix.setNumber(position, 0, depth);
-        }
+		}
 	}
 
-    void run() {
+	void run() {
 		int depth = 0;
 		System.out.println();
 		System.out.println(matrix.diluted("SUDOKU"));
@@ -136,9 +136,9 @@ class Sudoku {
 		matrix.print();
 		if(SOLVE)
 			solve(depth);
-    }
+	}
 
-    // Full House
+	// Full House
 	// A Full House is a row, column or box with a single unsolved cell.
 	// 
 	//    C1  C2  C3  C4  C5  C6  C7  C8  C9
@@ -161,7 +161,7 @@ class Sudoku {
 	//   |---+---+---|---+---+---|---+---+---|
 	// R9|   |   |   |   | 9 |   |   |   |   |
 	//   |===========|===========|===========|
-    int setFullHouse(Position position, int depth) {
+	int setFullHouse(Position position, int depth) {
 		Debug.log("setFullHouse(position = " + position + ")", depth++);
 		int added = 0;
 		Cell cell = matrix.getCell(position, depth);
@@ -183,9 +183,9 @@ class Sudoku {
 			}
 		}
 		return added;
-    }
+	}
 
-    int setAllFullHouses(int depth) {
+	int setAllFullHouses(int depth) {
 		Debug.log("setAllFullHouses()", depth++);
 		int added = 0;
 		Position position = new Position(0, 0);
@@ -194,7 +194,7 @@ class Sudoku {
 			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
 				added += setFullHouse(new Position(y, x), depth);
 		return added;
-    }
+	}
 
 	// Naked Single aka Forced Digit aka Sole Candidate
 	// A naked single is the last remaining candidate in a cell.
@@ -219,7 +219,7 @@ class Sudoku {
 	//   |---+---+---|---+---+---|---+---+---|
 	// R9|   |   |   |   |   |   |   |   |   |
 	//   |===========|===========|===========|
-    int setNakedSingle(Position position, int depth) {
+	int setNakedSingle(Position position, int depth) {
 		Debug.log("setNakedSingle(position = " + position + ")", depth++);
 		int added = 0;
 		Cell cell = matrix.getCell(position, depth);
@@ -236,9 +236,9 @@ class Sudoku {
 			}
 		}
 		return added;
-    }
+	}
 
-    int setAllNakedSingles(int depth) {
+	int setAllNakedSingles(int depth) {
 		Debug.log("setAllNakedSingles()", depth++);
 		int added = 0;
 		Position position = new Position(0, 0);
@@ -247,10 +247,10 @@ class Sudoku {
 			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
 				added += setNakedSingle(position, depth);
 		return added;
-    }
+	}
 
 	// Naked Pair aka Conjugate Pair
-    // The "naked pair" solving technique is an intermediate solving technique.
+	// The "naked pair" solving technique is an intermediate solving technique.
 	// In this technique the Sudoku is scanned for a pair of cells in a row, column or box
 	// containing only the same two candidates.
 	// Since these candidates must go in these cells, they can therefore be removed from the
@@ -301,7 +301,7 @@ class Sudoku {
 	//   |---+---+---|---+---+---|---+---+---|
 	// R9|   | 2 |   | 3 |   | 8 | 7 | 6 |   |
 	//   |===========|===========|===========|
-    int setNakedSubset(Position position, int amount, int depth) {
+	int setNakedSubset(Position position, int amount, int depth) {
 		Debug.log("setNakedSubset(position = " + position + ", amount = " + amount + ")", depth++);
 		Cell cell = matrix.getCell(position, depth);
 		if(cell.isEmpty()) {
@@ -329,9 +329,9 @@ class Sudoku {
 			}
 		}
 		return 0;
-    }
+	}
 
-    int setAllNakedSubsets(int amount, int depth) {
+	int setAllNakedSubsets(int amount, int depth) {
 		Debug.log("setAllNakedSubsets(amount = " + amount + ")", depth++);
 		int added = 0;
 		Position position = new Position(0, 0);
@@ -340,7 +340,7 @@ class Sudoku {
 			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
 				added += setNakedSubset(position, amount, depth);
 		return added;
-    }
+	}
 
 	// Hidden Single aka Pinned Digit
 	// A Hidden Single is a single candidate remaining for a specific digit in a row, column or box.
@@ -391,7 +391,7 @@ class Sudoku {
 		return added;
 	}
 
-    int setAllHiddenSingles(int depth) {
+	int setAllHiddenSingles(int depth) {
 		Debug.log("setAllHiddenSingles()", depth++);
 		int added = 0;
 		Position position = new Position(0, 0);
@@ -400,15 +400,15 @@ class Sudoku {
 			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
 				added += setHiddenSingle(position, depth);
 		return added;
-    }
+	}
 
-    void solve(int depth) {
+	void solve(int depth) {
 		Debug.log("solve()", depth++);
-        startTime = System.nanoTime();
+		startTime = System.nanoTime();
 		if(methodList.size() == 0)
 			for(Method method: Method.values())
 				methodList.add(method);
-        int added = TOTAL;
+		int added = TOTAL;
 		if(goList.size() > 0)
 			for(Position position: goList) {
 				// REMOVERS
@@ -469,38 +469,38 @@ class Sudoku {
 				counter += added;
 			}
 		}
-        endTime = System.nanoTime();
-        if(!VERBOSE)
-            matrix.print();
-        statistics();
-    }
+		endTime = System.nanoTime();
+		if(!VERBOSE)
+			matrix.print();
+		statistics();
+	}
 
-    void statistics() {
+	void statistics() {
 		System.out.println();
 		System.out.println(matrix.diluted("STATISTICS"));
 		System.out.println();
-        System.out.println("passages " + passages);
-        String unit = "ns";
-        double duration = (double)endTime - startTime;
-        if(duration > 1000) {
-            duration /= 1000;
-            unit = "µs";
-        }
-        if(duration > 1000) {
-            duration /= 1000;
-            unit = "ms";
-        }
-        if(duration > 1000) {
-            duration /= 1000;
-            unit = "s";
-        }
+		System.out.println("passages " + passages);
+		String unit = "ns";
+		double duration = (double)endTime - startTime;
+		if(duration > 1000) {
+			duration /= 1000;
+			unit = "µs";
+		}
+		if(duration > 1000) {
+			duration /= 1000;
+			unit = "ms";
+		}
+		if(duration > 1000) {
+			duration /= 1000;
+			unit = "s";
+		}
 		String decimal;
 		if(duration > 10)
 			decimal = new String("%.1f");
 		else
 			decimal = new String("%.2f");
-        System.out.println("duration " + String.format(decimal, duration) + " " + unit);
-    }
+		System.out.println("duration " + String.format(decimal, duration) + " " + unit);
+	}
 
 	public static void help() {
 		System.out.println("Sudoku.java by Kostas Dimou @ 2019");
@@ -534,15 +534,15 @@ class Sudoku {
 		System.out.println("        Displays a prompt for each imput row and pauses on each passage.");
 		System.out.println("        For each missing number you can provide a zero (0) or a space ( ).");
 		System.out.println("        Example for file Sudoku.0002:");
-        System.out.println("            ROW[0] = 53  7");
-        System.out.println("            ROW[1] = 6  195");
-        System.out.println("            ROW[2] =  98    6");
-        System.out.println("            ROW[3] = 8   6   3");
-        System.out.println("            ROW[4] = 4  8 3  1");
-        System.out.println("            ROW[5] = 7   2   6");
-        System.out.println("            ROW[6] =  6    28");
-        System.out.println("            ROW[7] =    419  5");
-        System.out.println("            ROW[8] =     8  79");
+		System.out.println("            ROW[0] = 53  7");
+		System.out.println("            ROW[1] = 6  195");
+		System.out.println("            ROW[2] =  98    6");
+		System.out.println("            ROW[3] = 8   6   3");
+		System.out.println("            ROW[4] = 4  8 3  1");
+		System.out.println("            ROW[5] = 7   2   6");
+		System.out.println("            ROW[6] =  6    28");
+		System.out.println("            ROW[7] =    419  5");
+		System.out.println("            ROW[8] =     8  79");
 		System.out.println("    -m or --method:");
 		System.out.println("        Calls the equivalent method for solving the Sudoku.");
 		System.out.println("        By default all methods are called.");
@@ -567,10 +567,10 @@ class Sudoku {
 		System.out.println("    java Sudoku -s -m FULL_HOUSE -m NAKED_SINGLE < Sudoku.0001");
 	}
 
-    public static void main(String[] args) {
-        Sudoku sudoku = new Sudoku();
-        String value = null;
-        if(args.length > 0)
+	public static void main(String[] args) {
+		Sudoku sudoku = new Sudoku();
+		String value = null;
+		if(args.length > 0)
 			for(String argument: args) {
 				if(value == null) {
 					if(argument.equals("-a") || argument.equals("--analyze"))
@@ -612,6 +612,6 @@ class Sudoku {
 						value = null;
 					}
 			}
-        sudoku.run();
+		sudoku.run();
 	}
 }

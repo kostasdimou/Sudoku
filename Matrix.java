@@ -105,72 +105,72 @@ class Matrix {
 	}
 
 	// Count the non-empty cells omitting the exception.
-    int count(Area area, Position position, int exception, int depth) {
+	int count(Area area, Position position, int exception, int depth) {
 		Debug.log("count(area = " + area + ", position = " + position + ", exception = " + exception + ")", depth++);
 		int max = Position.getMax();
 		int min = Position.getMin();
-        int counter = 0;
-        switch(area) {
-            case ALL:
+		int counter = 0;
+		switch(area) {
+			case ALL:
 				for(int y = 0; y < max; y++)
 					for(int x = 0; x < max; x++)
 						counter += cells[y][x].count(exception);
 				break;
-            case HORIZONTAL:
-                for(int x = 0; x < max; x++)
+			case HORIZONTAL:
+				for(int x = 0; x < max; x++)
 					counter += cells[position.getY()][x].count(exception);
-                break;
-            case VERTICAL:
-                for(int y = 0; y < max; y++)
+				break;
+			case VERTICAL:
+				for(int y = 0; y < max; y++)
 					counter += cells[y][position.getX()].count(exception);
-                break;
-            case BLOCK:
-                for(int i = 0, y = position.base().getY(); i < min; i++, y++)
-                    for(int j = 0, x = position.base().getX(); j < min; j++, x++)
+				break;
+			case BLOCK:
+				for(int i = 0, y = position.base().getY(); i < min; i++, y++)
+					for(int j = 0, x = position.base().getX(); j < min; j++, x++)
 						counter += cells[y][x].count(exception);
 				break;
-            case BUCKET_HORIZONTAL:
+			case BUCKET_HORIZONTAL:
 				for(int j = 0, x = position.base().getX(); j < min; j++, x++)
 					counter += cells[position.getY()][x].count(exception);
 				break;
-            case BUCKET_VERTICAL:
-                for(int i = 0, y = position.base().getY(); i < min; i++, y++)
+			case BUCKET_VERTICAL:
+				for(int i = 0, y = position.base().getY(); i < min; i++, y++)
 					counter += cells[y][position.getX()].count(exception);
 				break;
 		}
 		Debug.var("counter", counter, depth);
-        return counter;
-    }
+		return counter;
+	}
 
 	// Counts the non-empty cells without exception
-    int count(Area area, Position position, int depth) {
+	int count(Area area, Position position, int depth) {
 		return count(area, position, Cell.MISSING, depth);
 	}
 
 	// Counts the non-empty cells without exception
-    int count(Position position, int depth) {
+	int count(Position position, int depth) {
 		return getCell(position, depth).count();
 	}
 
 	// Checks if a cell is empty (has not a number yet).
-    boolean isEmpty(Position position, int depth) {
+	boolean isEmpty(Position position, int depth) {
 		Debug.log("isEmpty(position = " + position + ")", depth++);
 		return getCell(position, depth).isEmpty();
 	}
 
 	// Count all cells
-    int countAll() {
+	int countAll() {
 		int max = Position.getMax();
-        int counter = 0;
+		int counter = 0;
 		for(int y = 0; y < max; y++)
 			for(int x = 0; x < max; x++)
 				counter += cells[y][x].count();
-        return counter;
+		return counter;
 	}
 
 	// Checks if a number exists in the given area
-    int exists(Area area, Position position, int number, int depth) {
-    	Debug.log("exists(area = " + area + ", position = " + position + ", number = " + number + ")", depth++);
+	int exists(Area area, Position position, int number, int depth) {
+		Debug.log("exists(area = " + area + ", position = " + position + ", number = " + number + ")", depth++);
 		int max = position.getMax();
 		int exists = position.NOT_FOUND;
 		if(number != 0)
@@ -199,11 +199,11 @@ class Matrix {
 							exists = y;
 					break;
 			}
-        return exists;
-    }
+		return exists;
+	}
 
 	// Checks if a number exists in the current block, horizontal and vertical lines.
-    boolean exists(Position position, int number, int depth) {
+	boolean exists(Position position, int number, int depth) {
 		Debug.log("exists(positon = " + position + ", number = " + number + ")", depth++);
 		return
 			(exists(Area.HORIZONTAL, position, number, depth) > Position.NOT_FOUND) ||
@@ -212,7 +212,7 @@ class Matrix {
 	}
 
 	// Checks if a cell is not empty (has a number assigned).
-    boolean exists(Position position, int depth) {
+	boolean exists(Position position, int depth) {
 		Debug.log("exists(position = " + position + ")", depth++);
 		return getCell(position, depth).exists();
 	}
@@ -220,20 +220,20 @@ class Matrix {
 	// CANDIDATES //
 
 	// Returns the all candidates of a cell.
-    ArrayList<Integer> getCandidates(Position position, int depth) {
+	ArrayList<Integer> getCandidates(Position position, int depth) {
 		Debug.log("getCandidates(position = " + position + ")", depth++);
 		return getCell(position, depth).getCandidates();
 	}
 
 	// Returns the candidate of a cell from the given index.
-    int getCandidateAt(Position position, int index, int depth) {
+	int getCandidateAt(Position position, int index, int depth) {
 		Debug.log("getCandidateAt(position = " + position + ", index = " + index + ")", depth++);
 		return getCell(position, depth).getCandidateAt(0);
 	}
 
 	// Removes the candidates from the given area.
 	ArrayList<Position> matchCandidates(Area area, Position position, ArrayList<Integer> numbers, int minimum, int depth) {
-    	Debug.log("matchCandidates(area = " + area + ", position = " + position + ", numbers = " + numbers + ", minimum = " + minimum + ")", depth++);
+		Debug.log("matchCandidates(area = " + area + ", position = " + position + ", numbers = " + numbers + ", minimum = " + minimum + ")", depth++);
 		ArrayList<Cell> areaCells = getCells(area, position, depth);
 		ArrayList<Position> matches = new ArrayList<Position>();
 		for(Cell cell: areaCells) {
@@ -263,7 +263,7 @@ class Matrix {
 	}
 
 	// Counts the candidates of a cell.
-    int countCandidates(Position position, int depth) {
+	int countCandidates(Position position, int depth) {
 		Debug.log("countCandidate(position = " + position + ")", depth++);
 		return getCell(position, depth).countCandidates();
 	}
@@ -275,48 +275,48 @@ class Matrix {
 	}
 
 	// Count the non-empty cells omitting the exception
-    int countCandidateIf(Area area, Position position, int candidate, int depth) {
+	int countCandidateIf(Area area, Position position, int candidate, int depth) {
 		Debug.log("countCandidateIf(area = " + area + ", position = " + position + ", candidate = " + candidate + ")", depth++);
 		int max = Position.getMax();
 		int min = Position.getMin();
-        int counter = 0;
-        switch(area) {
-            case ALL:
+		int counter = 0;
+		switch(area) {
+			case ALL:
 				for(int y = 0; y < max; y++)
 					for(int x = 0; x < max; x++)
 						if(cells[y][x].existsCandidate(candidate))
 							counter++;
 				break;
-            case HORIZONTAL:
-                for(int x = 0; x < max; x++)
+			case HORIZONTAL:
+				for(int x = 0; x < max; x++)
 					if(cells[position.getY()][x].existsCandidate(candidate))
 						counter++;
-                break;
-            case VERTICAL:
-                for(int y = 0; y < max; y++)
+				break;
+			case VERTICAL:
+				for(int y = 0; y < max; y++)
 					if(cells[y][position.getX()].existsCandidate(candidate))
 						counter++;
-                break;
-            case BLOCK:
-                for(int i = 0, y = position.base().getY(); i < min; i++, y++)
-                    for(int j = 0, x = position.base().getX(); j < min; j++, x++)
+				break;
+			case BLOCK:
+				for(int i = 0, y = position.base().getY(); i < min; i++, y++)
+					for(int j = 0, x = position.base().getX(); j < min; j++, x++)
 						if(cells[y][x].existsCandidate(candidate))
 							counter++;
 				break;
-            case BUCKET_HORIZONTAL:
+			case BUCKET_HORIZONTAL:
 				for(int j = 0, x = position.base().getX(); j < min; j++, x++)
 					if(cells[position.getY()][x].existsCandidate(candidate))
 						counter++;
 				break;
-            case BUCKET_VERTICAL:
-                for(int i = 0, y = position.base().getY(); i < min; i++, y++)
+			case BUCKET_VERTICAL:
+				for(int i = 0, y = position.base().getY(); i < min; i++, y++)
 					if(cells[y][position.getX()].existsCandidate(candidate))
 						counter++;
 				break;
 		}
 		Debug.var("counter", counter, depth);
-        return counter;
-    }
+		return counter;
+	}
 
 	// PRINT //
 
@@ -384,26 +384,26 @@ class Matrix {
 
 	// Auxiliary method
 	// Prints the horizontal lines in the whole matrix print.
-    void printHorizontalLine(String prefix, boolean showCounter) {
-        System.out.print(prefix + " ");
+	void printHorizontalLine(String prefix, boolean showCounter) {
+		System.out.print(prefix + " ");
 		if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
 			System.out.print(" ");
-        System.out.print("+");
-        for(int y = 0; y < Position.getMin(); y++) {
-            for(int x = 0; x < Position.getMin(); x++) {
+		System.out.print("+");
+		for(int y = 0; y < Position.getMin(); y++) {
+			for(int x = 0; x < Position.getMin(); x++) {
 				System.out.print("--");
 				if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
 					System.out.print("-");
 			}
 			System.out.print("-+");
-        }
-        if(showCounter)
-            System.out.print(" (" + countAll() + ")");
-        System.out.println();
-    }
+		}
+		if(showCounter)
+			System.out.print(" (" + countAll() + ")");
+		System.out.println();
+	}
 
 	// Prints the whole matrix.
-    void print() {
+	void print() {
 		System.out.println();
 		Position xAxis = new Position(0, 0);
 		System.out.print(" ");
@@ -416,30 +416,30 @@ class Matrix {
 		}
 		System.out.println();
 		Position yAxis = new Position(0, 0);
-        for(int y = 0; y < Position.getMax(); y++, yAxis.forward(Area.VERTICAL)) {
-            if((y % Position.getMin()) == 0)
+		for(int y = 0; y < Position.getMax(); y++, yAxis.forward(Area.VERTICAL)) {
+			if((y % Position.getMin()) == 0)
 				printHorizontalLine(" ", false);
 			System.out.print(yAxis.Y()); // Y coordinate
-            for(int x = 0; x < Position.getMax(); x++) {
-                if((x % Position.getMin()) == 0)
-                    System.out.print(" |");
+			for(int x = 0; x < Position.getMax(); x++) {
+				if((x % Position.getMin()) == 0)
+					System.out.print(" |");
 				System.out.print(" ");
 				if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
 					System.out.print(" ");
-                if(cells[y][x].exists())
-                    System.out.print(cells[y][x].getNumber()); // Number
+				if(cells[y][x].exists())
+					System.out.print(cells[y][x].getNumber()); // Number
 				else
 					System.out.print(" "); // Empty
-            }
+			}
 			System.out.println(" |");
-        }
-        printHorizontalLine(" ", true);
+		}
+		printHorizontalLine(" ", true);
 		if(ANALYZE)
 			analyze();
-    }
+	}
 
 	// Prints the candidates grouped by areas (block, horizontal, vertical).
-    void analyze() {
+	void analyze() {
 		boolean memory = Debug.get();
 		Debug.set(true);
 		int depth = 0;
@@ -450,5 +450,5 @@ class Matrix {
 		printCells(Area.VERTICAL, depth);
 		Debug.set(memory);
 		System.out.println();
-    }
+	}
 }

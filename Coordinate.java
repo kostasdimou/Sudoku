@@ -1,7 +1,7 @@
 public class Coordinate {
-    private static final char ALPHA = 'A';
+	private static final char ALPHA = 'A';
 
-    public static final char ZERO = '0';
+	public static final char ZERO = '0';
 
 	public enum Format {
 		CHESS, // Y=9-1, X=A-I
@@ -12,7 +12,7 @@ public class Coordinate {
 
 	private static Format format = Format.JAVA;
 
-    private Coordinate() {
+	private Coordinate() {
 	}
 
 	public static boolean setFormat(Format s) {
