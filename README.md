@@ -6,6 +6,7 @@ Usage:
            [--interactive] [--method METHOD] [--solve] [--verbose]
 
 Where:
+
     -a or --analyze:
         Displays the posible positions for each number.
     -c or --coordinates:
@@ -60,6 +61,7 @@ Where:
         Displays the Sudoku matrix on every passage.
 
 Examples:
+
     java Sudoku --help
     java Sudoku --interactive
     java Sudoku --coordinate SUDOKU < Sudoku.0002
