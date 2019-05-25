@@ -548,7 +548,8 @@ class Sudoku {
 		System.out.println("        By default all methods are called.");
 		System.out.println("        Available methods:");
 		for(Method method: Method.values())
-			System.out.println("            " + method.name());
+			if(method.active)
+				System.out.println("            " + method);
 		System.out.println("    -s or --solve:");
 		System.out.println("        Solves the Sudoku by using all possible methods.");
 		System.out.println("    -v or --verbose:");
