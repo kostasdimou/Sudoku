@@ -51,10 +51,6 @@ Where:
             NAKED_QUAD
             NAKED_QUINT
             HIDDEN_SINGLE
-            HIDDEN_PAIR
-            HIDDEN_TRIPLE
-            HIDDEN_QUAD
-            HIDDEN_QUINT
     -s or --solve:
         Solves the Sudoku by using all possible methods.
     -v or --verbose:
