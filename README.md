@@ -6,7 +6,6 @@ Usage:
            [--interactive] [--method METHOD] [--solve] [--verbose]
 
 Where:
-
     -a or --analyze:
         Displays the posible positions for each number.
     -c or --coordinates:
@@ -45,15 +44,22 @@ Where:
         By default all methods are called.
         Available methods:
             FULL_HOUSE
-            HIDDEN_SINGLE
             NAKED_SINGLE
+            NAKED_PAIR
+            NAKED_TRIPLE
+            NAKED_QUAD
+            NAKED_QUINT
+            HIDDEN_SINGLE
+            HIDDEN_PAIR
+            HIDDEN_TRIPLE
+            HIDDEN_QUAD
+            HIDDEN_QUINT
     -s or --solve:
         Solves the Sudoku by using all possible methods.
     -v or --verbose:
         Displays the Sudoku matrix on every passage.
 
 Examples:
-
     java Sudoku --help
     java Sudoku --interactive
     java Sudoku --coordinate SUDOKU < Sudoku.0002
