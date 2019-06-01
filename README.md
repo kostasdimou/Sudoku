@@ -2,8 +2,9 @@
 
 Usage:
 
-    Sudoku [--analyze] [--coordinates FORMAT] [--debug] [--go YX] [--help] \
-           [--interactive] [--method METHOD] [--solve] [--verbose]
+    Sudoku [--analyze] [--coordinates FORMAT] [--debug] [--file INPUT_FILE] \
+    Sudoku [--go YX] [--help] [--interactive] [--method METHOD] [--solve] \
+           [--verbose] [--width WIDTH]
 
 Where:
 
@@ -18,6 +19,10 @@ Where:
             SUDOKU: Y=A..I,   X=1..9
     -d or --debug:
         Activates the debugging mode.
+    -f or --file:
+        Defines an external file for the initial population.
+        Example for reading file Sudoku.9x9.0002:
+            -f Sudoku.9x9.0002
     -g or --go:
         Check a specific coordinate.
         Example for row = 4, column = 0:
@@ -51,10 +56,22 @@ Where:
             NAKED_QUAD
             NAKED_QUINT
             HIDDEN_SINGLE
+            HIDDEN_PAIR
+            HIDDEN_TRIPLE
+            HIDDEN_QUAD
+            HIDDEN_QUINT
+        Example for activating the method NAKED_SINGLE:
+            -m NAKED_SINGLE
     -s or --solve:
         Solves the Sudoku by using all possible methods.
     -v or --verbose:
         Displays the Sudoku matrix on every passage.
+    -w or --width:
+        Defines the width of the Sudoku matrix.
+        The accepted numbers should have an integer root (e.g. 4, 9, 16, ...).
+        The default width is 9.
+        Example for setting the width equal to 16:
+            -w 16
 
 Examples:
 

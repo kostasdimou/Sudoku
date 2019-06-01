@@ -7,6 +7,7 @@ class Position {
 
 	private static int MAX = 9;
 	private static int MIN = (int)Math.sqrt(MAX);
+	private static int TOTAL = MAX * MAX;
 
 	private int y;
 	private int x;
@@ -29,6 +30,7 @@ class Position {
 	public static void setMax(int max) {
 		MAX = max;
 		MIN = (int)Math.sqrt(MAX);
+		TOTAL = MAX * MAX;
 	}
 
 	public static int getMax() {
@@ -37,6 +39,10 @@ class Position {
 
 	public static int getMin() {
 		return MIN;
+	}
+
+	public static int getTotal() {
+		return TOTAL;
 	}
 
 	// Checks the range of the coordinate.

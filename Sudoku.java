@@ -1,22 +1,23 @@
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.lang.Math;
 
 class Sudoku {
-	private static final int MAX = 9;
-	private static final int TOTAL = MAX * MAX;
 
 	private static boolean INTERACTIVE = false;
 	private static boolean SOLVE = false;
 	private static boolean VERBOSE = false;
-
 	private int passages = 0;
 	private long startTime = 0;
 	private long endTime = 0;
 	private ArrayList<Method> methodList = new ArrayList<Method>();
 	private ArrayList<Position> goList = new ArrayList<Position>();
-	private Scanner in = new Scanner(System.in);
-	private Matrix matrix = new Matrix(MAX);
+	private ArrayList<String> fileList = new ArrayList<String>();
+	private Matrix matrix = null;
 
 	public enum Method {
 		FULL_HOUSE(    0, true),
@@ -72,13 +73,13 @@ class Sudoku {
 		INTERACTIVE = true;
 	}
 
-	// Stores the methods we want to utilize for the solution.
-	boolean setActive(String methodName) {
+	// Activates the methods we want to use for the solution.
+	boolean setMethod(String name) {
 		boolean found = false;
 		for(Method method: Method.values())
-			if(methodName.equals(method.name())) {
+			if(name.equals(method.name())) {
 				if(!method.active) {
-					System.out.println("Inactive method: " + methodName);
+					System.out.println("Inactive method: " + name);
 					return false;
 				}
 				if(!methodList.contains(method))
@@ -86,8 +87,20 @@ class Sudoku {
 				found = true;
 			}
 		if(!found)
-			System.out.println("Unsupported method: " + methodName);
+			System.out.println("Unsupported method: " + name);
 		return found;
+	}
+
+	// Defines the files we want to solve.
+	boolean setFile(String name) {
+		File in = new File(name);
+		if(!in.exists()) {
+			System.out.println("File does not exist: " + name);
+			return false;
+		}
+		if(!fileList.contains(name))
+			fileList.add(name);
+		return true;
 	}
 
 	// Activates the SOLVE mode.
@@ -95,14 +108,33 @@ class Sudoku {
 		SOLVE = true;
 	}
 
+	// Defines the MAX width of the Sudoku matrix.
+	boolean setMax(String width) {
+		int max = 0;
+		try {
+			max = Integer.parseInt(width);
+		} catch(NumberFormatException e) {
+			System.out.println(e);
+			return false;
+		}
+		double root = Math.sqrt(max);
+		if((int)root != root) {
+			System.out.println("Invalid width: " + width);
+			return false;
+		}
+		Position.setMax(max);
+		return true;
+	}
+
 	// Activates the VERBOSE mode.
-	// Displays the actions and the matrix for each solution passage.
+	// VERBOSE mode displays the actions and the matrix for each solution passage.
 	void setVerbose() {
 		VERBOSE = true;
 	}
 
 	void read(int depth) {
 		Debug.log("read()", depth++);
+		Scanner in = new Scanner(System.in);
 		String row = null;
 		Position position = new Position(0, 0);
 		for(int y = 0; y < Position.getMax(); y++) {
@@ -129,11 +161,13 @@ class Sudoku {
 	}
 
 	void run() {
-		int depth = 0;
 		System.out.println();
-		System.out.println(matrix.diluted("SUDOKU"));
+		System.out.println(Matrix.diluted("SUDOKU"));
+		if(matrix == null)
+			matrix = new Matrix(Position.getMax());
 		if(INTERACTIVE)
 			System.out.println();
+		int depth = 0;
 		read(depth);
 		matrix.print();
 		if(SOLVE)
@@ -456,7 +490,8 @@ class Sudoku {
 		if(methodList.size() == 0)
 			for(Method method: Method.values())
 				methodList.add(method);
-		int added = TOTAL;
+		int total = Position.getTotal();
+		int added = total;
 		if(goList.size() > 0)
 			for(Position position: goList) {
 				// REMOVERS
@@ -491,7 +526,7 @@ class Sudoku {
 			}
 		else {
 			int counter = matrix.countAll();
-			while((counter < TOTAL) && (added > 0)) {
+			while((counter < total) && (added > 0)) {
 				passages++;
 				// REMOVERS
 				for(Method method: Method.values())
@@ -570,8 +605,9 @@ class Sudoku {
 		System.out.println("Sudoku.java by Kostas Dimou @ 2019");
 		System.out.println();
 		System.out.println("Usage:");
-		System.out.println("    Sudoku [--analyze] [--coordinates FORMAT] [--debug] [--go YX] [--help] \\");
-		System.out.println("           [--interactive] [--method METHOD] [--solve] [--verbose]");
+		System.out.println("    Sudoku [--analyze] [--coordinates FORMAT] [--debug] [--file INPUT_FILE] \\");
+		System.out.println("    Sudoku [--go YX] [--help] [--interactive] [--method METHOD] [--solve] \\");
+		System.out.println("           [--verbose] [--width WIDTH]");
 		System.out.println();
 		System.out.println("Where:");
 		System.out.println("    -a or --analyze:");
@@ -585,6 +621,10 @@ class Sudoku {
 		System.out.println("            SUDOKU: Y=A..I,   X=1..9");
 		System.out.println("    -d or --debug:");
 		System.out.println("        Activates the debugging mode.");
+		System.out.println("    -f or --file:");
+		System.out.println("        Defines an external file for the initial population.");
+		System.out.println("        Example for reading file Sudoku.9x9.0002:");
+		System.out.println("            -f Sudoku.9x9.0002");
 		System.out.println("    -g or --go:");
 		System.out.println("        Check a specific coordinate.");
 		System.out.println("        Example for row = 4, column = 0:");
@@ -608,16 +648,24 @@ class Sudoku {
 		System.out.println("            ROW[7] =    419  5");
 		System.out.println("            ROW[8] =     8  79");
 		System.out.println("    -m or --method:");
-		System.out.println("        Calls the equivalent method for solving the Sudoku.");
-		System.out.println("        By default all methods are called.");
+		System.out.println("        Activates a method for solving the Sudoku.");
+		System.out.println("        By default all methods are active.");
 		System.out.println("        Available methods:");
 		for(Method method: Method.values())
 			if(method.active)
 				System.out.println("            " + method);
+		System.out.println("        Example for activating the method NAKED_SINGLE:");
+		System.out.println("            -m NAKED_SINGLE");
 		System.out.println("    -s or --solve:");
 		System.out.println("        Solves the Sudoku by using all possible methods.");
 		System.out.println("    -v or --verbose:");
 		System.out.println("        Displays the Sudoku matrix on every passage.");
+		System.out.println("    -w or --width:");
+		System.out.println("        Defines the width of the Sudoku matrix.");
+		System.out.println("        The accepted numbers should have an integer root (e.g. 4, 9, 16, ...).");
+		System.out.println("        The default width is 9.");
+		System.out.println("        Example for setting the width equal to 16:");
+		System.out.println("            -w 16");
 		System.out.println();
 		System.out.println("Examples:");
 		System.out.println("    java Sudoku --help");
@@ -633,18 +681,20 @@ class Sudoku {
 
 	public static void main(String[] args) {
 		Sudoku sudoku = new Sudoku();
-		String value = null;
+		String next = null;
 		if(args.length > 0)
 			for(String argument: args) {
-				if(value == null) {
+				if(next == null) {
 					if(argument.equals("-a") || argument.equals("--analyze"))
 						Matrix.setAnalyze(true);
 					else if(argument.equals("-c") || argument.equals("--coordinate"))
-						value = "-c";
+						next = "-c";
 					else if(argument.equals("-d") || argument.equals("--debug"))
 						Debug.set(true);
+					else if(argument.equals("-f") || argument.equals("--file"))
+						next = "-f";
 					else if(argument.equals("-g") || argument.equals("--go"))
-						value = "-g";
+						next = "-g";
 					else if(argument.equals("-h") || argument.equals("--help")) {
 						sudoku.help();
 						return;
@@ -652,28 +702,38 @@ class Sudoku {
 					else if(argument.equals("-i") || argument.equals("--interactive"))
 						sudoku.setInteractive();
 					else if(argument.equals("-m") || argument.equals("--method"))
-						value = "-m";
+						next = "-m";
 					else if(argument.equals("-s") || argument.equals("--solve"))
 						sudoku.setSolve();
 					else if(argument.equals("-v") || argument.equals("--verbose"))
 						sudoku.setVerbose();
+					else if(argument.equals("-w") || argument.equals("--width"))
+						next = "-w";
 					else {
 						System.out.println("Unsupported flag: " + argument);
 						return;
 					}
 				} else
-					if(value.equals("-c")) {
+					if(next.equals("-c")) {
 						if(!Coordinate.setFormat(argument))
 							return;
-						value = null;
-					} else if(value.equals("-g")) {
+						next = null;
+					} else if(next.equals("-f")) {
+						if(!sudoku.setFile(argument))
+							return;
+						next = null;
+					} else if(next.equals("-g")) {
 						if(!sudoku.setGo(argument))
 							return;
-						value = null;
-					} else if(value.equals("-m")) {
-						if(!sudoku.setActive(argument))
+						next = null;
+					} else if(next.equals("-m")) {
+						if(!sudoku.setMethod(argument))
 							return;
-						value = null;
+						next = null;
+					} else if(next.equals("-w")) {
+						if(!sudoku.setMax(argument))
+							return;
+						next = null;
 					}
 			}
 		sudoku.run();

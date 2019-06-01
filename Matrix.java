@@ -336,7 +336,7 @@ class Matrix {
 	// PRINT //
 
 	// Dilutes the given string (characters separated by spaces)
-	String diluted(String dense) {
+	public static String diluted(String dense) {
 		String thin = "";
 		for(int i = 0; i < dense.length(); i++) {
 			if(i != 0)
@@ -347,7 +347,7 @@ class Matrix {
 	}
 
 	// Returns the name of the given area diluted.
-	String diluted(Area area) {
+	public static String diluted(Area area) {
 		return diluted(area.name());
 	}
 
