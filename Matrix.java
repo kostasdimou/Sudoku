@@ -231,17 +231,32 @@ class Matrix {
 		return getCell(position, depth).getCandidateAt(0);
 	}
 
-	// Removes the candidates from the given area.
-	ArrayList<Position> matchCandidates(Area area, Position position, ArrayList<Integer> numbers, int minimum, int depth) {
-		Debug.log("matchCandidates(area = " + area + ", position = " + position + ", numbers = " + numbers + ", minimum = " + minimum + ")", depth++);
+	// Locates the cells which have atleast minimum same candidates and none different in the given area.
+	ArrayList<Position> cleanMatchCandidates(Area area, Position position, ArrayList<Integer> numbers, int minimum, int depth) {
+		Debug.log("cleanMatchCandidates(area = " + area + ", position = " + position + ", numbers = " + numbers + ", minimum = " + minimum + ")", depth++);
 		ArrayList<Cell> areaCells = getCells(area, position, depth);
 		ArrayList<Position> matches = new ArrayList<Position>();
 		for(Cell cell: areaCells) {
 			Debug.log("--> cell: " + cell, depth);
 			Position target = cell.getPosition();
-			Debug.log("--> target: " + target, depth);
-			if(cell.subsetCandidates(numbers, minimum)) {
-				Debug.log("--> subset: TRUE", depth);
+			if(cell.cleanSubset(numbers, minimum)) {
+				Debug.log("--> clean subset: TRUE", depth);
+				matches.add(target);
+			}
+		}
+		return matches;
+	}
+
+	// Locates the cells which have atleast minimum same candidates and maybe some different in the given area.
+	ArrayList<Position> dirtyMatchCandidates(Area area, Position position, ArrayList<Integer> numbers, int minimum, int depth) {
+		Debug.log("dirtyMatchCandidates(area = " + area + ", position = " + position + ", numbers = " + numbers + ", minimum = " + minimum + ")", depth++);
+		ArrayList<Cell> areaCells = getCells(area, position, depth);
+		ArrayList<Position> matches = new ArrayList<Position>();
+		for(Cell cell: areaCells) {
+			Debug.log("--> cell: " + cell, depth);
+			Position target = cell.getPosition();
+			if(cell.dirtySubset(numbers, minimum)) {
+				Debug.log("--> dirty subset: TRUE", depth);
 				matches.add(target);
 			}
 		}
