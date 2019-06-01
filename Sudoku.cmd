@@ -1,7 +1,6 @@
 @cls
-@set PROGRAM=Sudoku
-@set JAVA=%PROGRAM%.java
-@set CLASS=%PROGRAM%.class
+@set JAVA=Sudoku.java
+@set CLASS=Sudoku.class
 @set COMPILER_OPTIONS="-Xmaxerrs 10 -Xmaxwarns 10"
 @for /f %%f in ('dir /b /o:d "%JAVA%" "%CLASS%"') do @set NEWEST=%%f
 @if %NEWEST% == %JAVA% (
@@ -12,35 +11,35 @@
 @if %ERRORLEVEL% == 0 (
 	@if "%~1" == "" (
 		@echo ===== TEST =====
-		@rem if %ERRORLEVEL% == 0 java %PROGRAM% -s -g 001 -m NAKED_SINGLE < %PROGRAM%.0000 | more 
-		@rem if %ERRORLEVEL% == 0 java %PROGRAM% -s -g 001 -m HIDDEN_SINGLE < %PROGRAM%.0001 | more 
-		@rem if %ERRORLEVEL% == 0 java %PROGRAM% -s -g 001 -m HIDDEN_SINGLE < %PROGRAM%.0004 | more 
-		@rem if %ERRORLEVEL% == 0 java %PROGRAM% -s -g 001 -m HIDDEN_SINGLE < %PROGRAM%.0005 | more 
-		@rem if %ERRORLEVEL% == 0 java %PROGRAM% -d -v -g 419 -m HIDDEN_SINGLE < %PROGRAM%.0006 | more 
-		@rem if %ERRORLEVEL% == 0 java %PROGRAM% -s < %PROGRAM%.0002 | more 
-		@rem if %ERRORLEVEL% == 0 java %PROGRAM% -s < %PROGRAM%.0003 | more 
-		@rem if %ERRORLEVEL% == 0 java %PROGRAM% -s < %PROGRAM%.0006 | more 
-		@rem if %ERRORLEVEL% == 0 java %PROGRAM% -s < %PROGRAM%.0007 | more 
-		@rem if %ERRORLEVEL% == 0 java %PROGRAM% -d -s -g 201 < %PROGRAM%.0002 | more 
-		@if %ERRORLEVEL% == 0 java %PROGRAM% -d -a -s < %PROGRAM%.0002 | more 
+		@rem if %ERRORLEVEL% == 0 java Sudoku -s -g 001 -m NAKED_SINGLE < Sudoku.9x9.0000 | more 
+		@rem if %ERRORLEVEL% == 0 java Sudoku -s -g 001 -m HIDDEN_SINGLE < Sudoku.9x9.0001 | more 
+		@rem if %ERRORLEVEL% == 0 java Sudoku -s -g 001 -m HIDDEN_SINGLE < Sudoku.9x9.0004 | more 
+		@rem if %ERRORLEVEL% == 0 java Sudoku -s -g 001 -m HIDDEN_SINGLE < Sudoku.9x9.0005 | more 
+		@rem if %ERRORLEVEL% == 0 java Sudoku -d -v -g 419 -m HIDDEN_SINGLE < Sudoku.9x9.0006 | more 
+		@rem if %ERRORLEVEL% == 0 java Sudoku -s < Sudoku.9x9.0002 | more 
+		@rem if %ERRORLEVEL% == 0 java Sudoku -s < Sudoku.9x9.0003 | more 
+		@rem if %ERRORLEVEL% == 0 java Sudoku -s < Sudoku.9x9.0006 | more 
+		@rem if %ERRORLEVEL% == 0 java Sudoku -s < Sudoku.9x9.0007 | more 
+		@rem if %ERRORLEVEL% == 0 java Sudoku -d -s -g 201 < Sudoku.9x9.0002 | more 
+		@if %ERRORLEVEL% == 0 java Sudoku -d -a -s < Sudoku.9x9.0002 | more 
 	) else (
 		@echo ===== DEMO =====
-		java %PROGRAM% --help
+		java Sudoku --help
 		pause
-		java %PROGRAM% --interactive
+		java Sudoku --interactive
 		pause
-		java %PROGRAM% --coordinate SUDOKU < %PROGRAM%.0002
+		java Sudoku --coordinate SUDOKU < Sudoku.9x9.0002
 		pause
-		java %PROGRAM% --analyze < %PROGRAM%.0002
+		java Sudoku --analyze < Sudoku.9x9.0002
 		pause
-		java %PROGRAM% --solve < %PROGRAM%.0002
+		java Sudoku --solve < Sudoku.9x9.0002
 		pause
-		java %PROGRAM% -s --verbose < %PROGRAM%.0002
+		java Sudoku -s --verbose < Sudoku.9x9.0002
 		pause
-		java %PROGRAM% -s --go 419 --debug < %PROGRAM%.0006
+		java Sudoku -s --go 419 --debug < Sudoku.9x9.0006
 		pause
-		java %PROGRAM% -s --method NAKED_SINGLE < %PROGRAM%.0000
+		java Sudoku -s --method NAKED_SINGLE < Sudoku.9x9.0000
 		pause
-		java %PROGRAM% -s -m NAKED_SINGLE -m FULL_HOUSE < %PROGRAM%.0001
+		java Sudoku -s -m NAKED_SINGLE -m FULL_HOUSE < Sudoku.9x9.0001
 	)
 )

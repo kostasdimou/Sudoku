@@ -30,7 +30,7 @@ Where:
     -i or --interactive:
         Displays a prompt for each imput row and pauses on each passage.
         For each missing number you can provide a zero (0) or a space ( ).
-        Example for file Sudoku.0002:
+        Example for file Sudoku.9x9.0002:
             ROW[0] = 53  7
             ROW[1] = 6  195
             ROW[2] =  98    6
@@ -60,10 +60,10 @@ Examples:
 
     java Sudoku --help
     java Sudoku --interactive
-    java Sudoku --coordinate SUDOKU < Sudoku.0002
-    java Sudoku --analyze < Sudoku.0002
-    java Sudoku --solve < Sudoku.0002
-    java Sudoku -s --verbose < Sudoku.0002
-    java Sudoku -s --go 41 --debug < Sudoku.0006
-    java Sudoku -s --method NAKED_SINGLE < Sudoku.0000
-    java Sudoku -s -m FULL_HOUSE -m NAKED_SINGLE < Sudoku.0001
+    java Sudoku --coordinate SUDOKU < Sudoku.9x9.0002
+    java Sudoku --analyze < Sudoku.9x9.0002
+    java Sudoku --solve < Sudoku.9x9.0002
+    java Sudoku -s --verbose < Sudoku.9x9.0002
+    java Sudoku -s --go 41 --debug < Sudoku.9x9.0006
+    java Sudoku -s --method NAKED_SINGLE < Sudoku.9x9.0000
+    java Sudoku -s -m FULL_HOUSE -m NAKED_SINGLE < Sudoku.9x9.0001

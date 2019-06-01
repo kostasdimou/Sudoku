@@ -103,12 +103,24 @@ class Cell {
 		return numbers.equals(candidates);
 	}
 
-	boolean subsetCandidates(ArrayList<Integer> numbers, int minimum) {
+	// Returns true if the candidates have at least minimum from the given numbers and none different
+	boolean cleanSubset(ArrayList<Integer> numbers, int minimum) {
 		int counter = 0;
 		for(Integer number: candidates)
 			if(numbers.indexOf(number) == -1)
 				return false;
 			else
+				counter++;
+		if(counter >= minimum)
+			return true;
+		return false;
+	}
+
+	// Returns true if the candidates have at least minimum from the given numbers and maybe some different
+	boolean dirtySubset(ArrayList<Integer> numbers, int minimum) {
+		int counter = 0;
+		for(Integer number: candidates)
+			if(numbers.indexOf(number) != -1)
 				counter++;
 		if(counter >= minimum)
 			return true;
