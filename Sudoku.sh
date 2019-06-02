@@ -4,7 +4,8 @@ clear
 function execute() {
 	echo "$@"
 	$@
-	pause
+	ERRNO=$?
+	[ $PAUSE = 1 ] && pause
 } # function pause()
 # ------------------------------------------------------------------------------
 function pause() {
@@ -13,19 +14,20 @@ function pause() {
 	echo
 } # function pause()
 # ------------------------------------------------------------------------------
-ONCE=1
+function check() {
+	execute $@
+} # function check()
+# ------------------------------------------------------------------------------
+echo ===== COMPILING =====
+PAUSE=1
 ERRNO=0
 COMPILER_OPTIONS="-Xmaxerrs 10 -Xmaxwarns 10"
-for SOURCE in Area Coordinate Print Position Cell Matrix Sudoku
+for JAVA in *.java
 do
-	JAVA=$SOURCE.java
-	CLASS=$SOURCE.class
+	CLASS=${JAVA%.java}.class
 	if [ $JAVA -nt $CLASS ]
 	then
-		[ $ONCE = 1 ] && echo ===== COMPILING ===== && ONCE=0
-		echo javac $COMPILER_OPTIONS $JAVA
-		javac $COMPILER_OPTIONS $JAVA
-		ERRNO=$?
+		execute javac $COMPILER_OPTIONS $JAVA
 		[ $ERRNO != 0 ] && break
 	fi
 done
@@ -33,70 +35,68 @@ if [ $ERRNO == 0 ]
 then
 	if [ $# == 0 ]
 	then
-		echo ===== TEST =====
+		echo ===== TESTING =====
 		# --coordinate
-		# [ $? = 0 ] && execute java Sudoku -c CHESS  -f Sudoku.9x9.0002
-		# [ $? = 0 ] && execute java Sudoku -c JAVA   -f Sudoku.9x9.0002
-		# [ $? = 0 ] && execute java Sudoku -c ROWCOL -f Sudoku.9x9.0002
-		# [ $? = 0 ] && execute java Sudoku -c SUDOKU -f Sudoku.9x9.0002
+		# [ $ERRNO = 0 ] && execute java Sudoku -c CHESS  -f Sudoku.9x9.0002
+		# [ $ERRNO = 0 ] && execute java Sudoku -c JAVA   -f Sudoku.9x9.0002
+		# [ $ERRNO = 0 ] && execute java Sudoku -c ROWCOL -f Sudoku.9x9.0002
+		# [ $ERRNO = 0 ] && execute java Sudoku -c SUDOKU -f Sudoku.9x9.0002
 		# --go
-		# [ $? = 0 ] && execute java Sudoku -c CHESS  -g 9a   -f Sudoku.9x9.0000
-		# [ $? = 0 ] && execute java Sudoku -c JAVA   -g 00   -f Sudoku.9x9.0000
-		# [ $? = 0 ] && execute java Sudoku -c ROWCOL -g r1c1 -f Sudoku.9x9.0000
-		# [ $? = 0 ] && execute java Sudoku -c SUDOKU -g a1   -f Sudoku.9x9.0000
+		# [ $ERRNO = 0 ] && execute java Sudoku -c CHESS  -g 9a   -f Sudoku.9x9.0000
+		# [ $ERRNO = 0 ] && execute java Sudoku -c JAVA   -g 00   -f Sudoku.9x9.0000
+		# [ $ERRNO = 0 ] && execute java Sudoku -c ROWCOL -g r1c1 -f Sudoku.9x9.0000
+		# [ $ERRNO = 0 ] && execute java Sudoku -c SUDOKU -g a1   -f Sudoku.9x9.0000
 		# --method FULL_HOUSE
-		# [ $? = 0 ] && execute java Sudoku -g 04 -s -m FULL_HOUSE -v -f Sudoku.9x9.0008
-		# [ $? = 0 ] && execute java Sudoku -g 53 -s -m FULL_HOUSE -v -f Sudoku.9x9.0008
-		# [ $? = 0 ] && execute java Sudoku -g 38 -s -m FULL_HOUSE -v -f Sudoku.9x9.0008
+		## [ $ERRNO = 0 ] && execute java Sudoku -g 04 -g 53 -g 38 -s -m FULL_HOUSE -f Sudoku.9x9.0008
 		# --method NAKED_SINGLE
-		# [ $? = 0 ] && execute java Sudoku -g 00 -s -m NAKED_SINGLE -v -f Sudoku.9x9.0000
-		# [ $? = 0 ] && execute java Sudoku -g 14 -s -m NAKED_SINGLE -v -f Sudoku.9x9.0009
+		## [ $ERRNO = 0 ] && execute java Sudoku -g 00 -s -m NAKED_SINGLE -f Sudoku.9x9.0000
+		## [ $ERRNO = 0 ] && execute java Sudoku -g 14 -s -m NAKED_SINGLE -f Sudoku.9x9.0009
 		# --method NAKED_PAIR
-		# [ $? = 0 ] && execute java Sudoku -g 50 -s -m NAKED_PAIR -v -d -f Sudoku.9x9.0010
-		# [ $? = 0 ] && execute java Sudoku -g 26 -s -m NAKED_PAIR -v -d -f Sudoku.9x9.0011
+		# [ $ERRNO = 0 ] && execute java Sudoku -v -g 50 -s -m NAKED_PAIR -m FULL_HOUSE -m NAKED_SINGLE -f Sudoku.9x9.0010
+		# [ $ERRNO = 0 ] && execute java Sudoku -v -g 26 -s -m NAKED_PAIR -m FULL_HOUSE -m NAKED_SINGLE -f Sudoku.9x9.0011
 		# --method NAKED_TRIPLE
-		# [ $? = 0 ] && execute java Sudoku -g 04 -s -m NAKED_TRIPLE -v -d -f Sudoku.9x9.0012
-		# [ $? = 0 ] && execute java Sudoku -g 41 -s -m NAKED_TRIPLE -v -d -f Sudoku.9x9.0013
+		# [ $ERRNO = 0 ] && execute java Sudoku -v -g 04 -s -m NAKED_TRIPLE -m FULL_HOUSE -m NAKED_SINGLE -f Sudoku.9x9.0012
+		[ $ERRNO = 0 ] && execute java Sudoku -v -g 41 -s -m NAKED_TRIPLE -m FULL_HOUSE -m NAKED_SINGLE -f Sudoku.9x9.0013
 		# --method NAKED_QUAD
-		# [ $? = 0 ] && execute java Sudoku -g 70 -s -m NAKED_QUAD -v -d -f Sudoku.9x9.0014
-		# [ $? = 0 ] && execute java Sudoku -g 62 -s -m NAKED_QUAD -v -d -f Sudoku.9x9.0015
+		[ $ERRNO = 0 ] && execute java Sudoku -v -g 70 -s -m NAKED_QUAD -m FULL_HOUSE -m NAKED_SINGLE -f Sudoku.9x9.0014
+		[ $ERRNO = 0 ] && execute java Sudoku -v -g 62 -s -m NAKED_QUAD -m FULL_HOUSE -m NAKED_SINGLE -f Sudoku.9x9.0015
 		# --method HIDDEN_SINGLE
-		# [ $? = 0 ] && execute java Sudoku -g 00 -s -m HIDDEN_SINGLE -v -f Sudoku.9x9.0001
-		# [ $? = 0 ] && execute java Sudoku -g 00 -s -m HIDDEN_SINGLE -v -f Sudoku.9x9.0004
-		# [ $? = 0 ] && execute java Sudoku -g 00 -s -m HIDDEN_SINGLE -v -f Sudoku.9x9.0005
+		# [ $ERRNO = 0 ] && execute java Sudoku -g 00 -s -m HIDDEN_SINGLE -v -f Sudoku.9x9.0001
+		# [ $ERRNO = 0 ] && execute java Sudoku -g 00 -s -m HIDDEN_SINGLE -v -f Sudoku.9x9.0004
+		# [ $ERRNO = 0 ] && execute java Sudoku -g 00 -s -m HIDDEN_SINGLE -v -f Sudoku.9x9.0005
 		# --method HIDDEN_PAIR
-		# [ $? = 0 ] && execute java Sudoku -g 50 -s -m HIDDEN_PAIR -v -d -f Sudoku.9x9.0010
+		[ $ERRNO = 0 ] && execute java Sudoku -v -g 50 -s -m HIDDEN_PAIR -v -f Sudoku.9x9.0010
 		# --method HIDDEN_TRIPLE
-		# [ $? = 0 ] && execute java Sudoku -g 04 -s -m HIDDEN_TRIPLE -v -d -f Sudoku.9x9.0012
-		# [ $? = 0 ] && execute java Sudoku -g 41 -s -m HIDDEN_TRIPLE -v -d -f Sudoku.9x9.0013
+		[ $ERRNO = 0 ] && execute java Sudoku -v -g 04 -s -m HIDDEN_TRIPLE -v -f Sudoku.9x9.0012
+		[ $ERRNO = 0 ] && execute java Sudoku -v -g 41 -s -m HIDDEN_TRIPLE -v -f Sudoku.9x9.0013
 		# --method HIDDEN_QUAD
-		# [ $? = 0 ] && execute java Sudoku -g 70 -s -m HIDDEN_QUAD -v -d -f Sudoku.9x9.0014
-		# [ $? = 0 ] && execute java Sudoku -g 62 -s -m HIDDEN_QUAD -v -d -f Sudoku.9x9.0015
+		[ $ERRNO = 0 ] && execute java Sudoku -v -g 70 -s -m HIDDEN_QUAD -v -f Sudoku.9x9.0014
+		[ $ERRNO = 0 ] && execute java Sudoku -v -g 62 -s -m HIDDEN_QUAD -v -f Sudoku.9x9.0015
 		# --solve --verbose
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0013 # 58 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0014 # 50 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0012 # 42 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0015 # 41 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0011 # 37 -> 37
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0002 # 30 -> 77
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0003 # 27 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0010 # 26 -> 27
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0006 # 24 -> 26
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0007 # 23 -> solved
-		# [ $? = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0008 # 18 -> 21
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0013 # 58 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0014 # 50 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0012 # 42 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0015 # 41 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0011 # 37 -> 37
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0002 # 30 -> 77
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0003 # 27 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0010 # 26 -> 27
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0006 # 24 -> 26
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0007 # 23 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -v -f Sudoku.9x9.0008 # 18 -> 21
 		# SOLVED
-		[ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0013 # 58 -> solved
-		[ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0014 # 50 -> solved
-		[ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0012 # 42 -> solved
-		[ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0015 # 41 -> solved
-		[ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0003 # 27 -> solved
-		[ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0007 # 23 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0013 # 58 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0014 # 50 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0012 # 42 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0015 # 41 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0003 # 27 -> solved
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0007 # 23 -> solved
 		# UNSOLVED
-		# [ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0011 # 37 -> 37
-		# [ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0002 # 30 -> 77
-		# [ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0010 # 26 -> 27
-		# [ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0006 # 24 -> 26
-		# [ $? = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0008 # 18 -> 21
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0011 # 37 -> 37
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0002 # 30 -> 77
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0010 # 26 -> 27
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0006 # 24 -> 26
+		# [ $ERRNO = 0 ] && execute java Sudoku -s -f Sudoku.9x9.0008 # 18 -> 21
 	else
 		echo ===== DEMO =====
 		execute java Sudoku --help

@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.io.PrintStream;
 
 class Matrix {
 	private static boolean ANALYZE;
@@ -264,17 +265,20 @@ class Matrix {
 	}
 
 	// Removes the candidates from the given area.
-	void removeCandidateIf(Area area, Position position, int number, ArrayList<Position> exceptions, int depth) {
+	ArrayList<Position> removeCandidateIf(Area area, Position position, int number, ArrayList<Position> exceptions, int depth) {
 		Debug.log("removeCandidateIf(area = " + area + ", position = " + position + ", number = " + number + ", exceptions = " + exceptions + ")", depth++);
 		ArrayList<Cell> areaCells = getCells(area, position, depth);
+		ArrayList<Position> removed = new ArrayList<Position>();
 		for(Cell cell: areaCells) {
 			Position target = cell.getPosition();
 			if(target.equals(position))
 				continue;
 			if(exceptions.contains(target))
 				continue;
-			cell.removeCandidate(number);
+			if(cell.removeCandidate(number))
+				removed.add(target);
 		}
+		return removed;
 	}
 
 	// Counts the candidates of a cell.
@@ -397,58 +401,64 @@ class Matrix {
 		System.out.println();
 	}
 
-	// Auxiliary method
-	// Prints the horizontal lines in the whole matrix print.
-	void printHorizontalLine(String prefix, boolean showCounter) {
-		System.out.print(prefix + " ");
-		if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
-			System.out.print(" ");
-		System.out.print("+");
-		for(int y = 0; y < Position.getMin(); y++) {
-			for(int x = 0; x < Position.getMin(); x++) {
-				System.out.print("--");
-				if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
-					System.out.print("-");
-			}
-			System.out.print("-+");
+	// Returns width characters.
+	String repeat(String pattern, int width) {
+		String format = "";
+		for(int i = 0; i < width; i++)
+			format += pattern;
+		return format;
+	}
+
+	// Prints the top coordinates line.
+	void printTopCoordinatesLine() {
+		Position xAxis = new Position(0, 0);
+		int max = xAxis.getMax();
+		String line = repeat(" ", Coordinate.widthY(max) + 1);
+		int min = xAxis.getMin();
+		for(int x = 0; x < max; x++, xAxis.forward(Area.HORIZONTAL)) {
+			if(x % min == 0)
+				line += "  ";
+			line += Coordinate.formattedX(xAxis.X(), max) + " "; // x cordinate
 		}
-		if(showCounter)
-			System.out.print(" (" + countAll() + ")");
-		System.out.println();
+		System.out.println(line);
+	}
+
+	// Prints the horizontal delimiter line.
+	void printHorizontalDelimiter(String suffix) {
+		Position xAxis = new Position(0, 0);
+		int max = xAxis.getMax();
+		String line = repeat(" ", Coordinate.widthY(max) + 1);
+		int min = xAxis.getMin();
+		for(int y = 0; y < min; y++)
+			for(int x = 0; x < min; x++) {
+				if(x % min == 0)
+					line += "+-";
+				line += repeat("-", Coordinate.widthX(max) + 1);
+			}
+		line += "+";
+		System.out.println(line + suffix);
 	}
 
 	// Prints the whole matrix.
 	void print() {
-		System.out.println();
-		Position xAxis = new Position(0, 0);
-		System.out.print(" ");
-		if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
-			System.out.print(" ");
-		for(int x = 0; x < Position.getMax(); x++, xAxis.forward(Area.HORIZONTAL)) {
-			if(x % Position.getMin() == 0)
-				System.out.print("  ");
-			System.out.print(" " + xAxis.X()); // X coordinate
-		}
-		System.out.println();
+		System.out.println(); // blank line
+		printTopCoordinatesLine();
 		Position yAxis = new Position(0, 0);
-		for(int y = 0; y < Position.getMax(); y++, yAxis.forward(Area.VERTICAL)) {
-			if((y % Position.getMin()) == 0)
-				printHorizontalLine(" ", false);
-			System.out.print(yAxis.Y()); // Y coordinate
-			for(int x = 0; x < Position.getMax(); x++) {
-				if((x % Position.getMin()) == 0)
-					System.out.print(" |");
-				System.out.print(" ");
-				if(Coordinate.getFormat() == Coordinate.Format.ROWCOL)
-					System.out.print(" ");
-				if(cells[y][x].exists())
-					System.out.print(cells[y][x].getNumber()); // Number
-				else
-					System.out.print(" "); // Empty
+		int max = yAxis.getMax();
+		int min = yAxis.getMin();
+		for(int y = 0; y < max; y++, yAxis.forward(Area.VERTICAL)) {
+			if((y % min) == 0)
+				printHorizontalDelimiter("");
+			String line = Coordinate.formattedY(yAxis.Y(), max) + " "; // y coordinate
+			for(int x = 0; x < max; x++) {
+				if((x % min) == 0)
+					line += "| ";
+				line += Coordinate.formattedY(cells[y][x].formattedNumber(), max) + " "; // number
 			}
-			System.out.println(" |");
+			line += "|";
+			System.out.println(line);
 		}
-		printHorizontalLine(" ", true);
+		printHorizontalDelimiter(" (" + countAll() + ")");
 		if(ANALYZE)
 			analyze();
 	}

@@ -4,6 +4,7 @@ import java.util.NoSuchElementException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.lang.Math;
 
 class Sudoku {
@@ -14,12 +15,13 @@ class Sudoku {
 	private int passages = 0;
 	private long startTime = 0;
 	private long endTime = 0;
+	private ArrayList<InputStream> inputList = new ArrayList<InputStream>();
 	private ArrayList<Method> methodList = new ArrayList<Method>();
 	private ArrayList<Position> goList = new ArrayList<Position>();
-	private ArrayList<String> fileList = new ArrayList<String>();
 	private Matrix matrix = null;
 
 	public enum Method {
+		// name     code  active
 		FULL_HOUSE(    0, true),
 		NAKED(        10, false),
 		NAKED_SINGLE( 11, true),
@@ -51,15 +53,20 @@ class Sudoku {
 	}
 
 	// Stores the points and numbers combinations we want to examine during solution.
-	boolean setGo(String go) {
-		go = go.toUpperCase();
-		int length = go.length();
-		int middle = length / 2;
-		String y = go.substring(0, middle);
-		String x = go.substring(middle, length);
+	boolean setPosition(String yx) {
 		int max = Position.getMax();
+		int widthY = Coordinate.widthY(max);
+		int widthX = Coordinate.widthX(max);
+		if(yx.length() < widthY + widthX) {
+			System.out.println("Too short coordinates (" + (widthY + widthX) + "): " + yx.length());
+			return false;
+		}
+		yx = yx.toUpperCase();
+		String y = yx.substring(0, widthY);
+		yx = yx.substring(widthY);
+		String x = yx.substring(0, widthX);
 		if(!Coordinate.validY(y, max) || !Coordinate.validX(x, max)) {
-			System.out.println("Incompatible coordinates: " + go);
+			System.out.println("Incompatible coordinates: " + yx);
 			return false;
 		}
 		Position position = new Position(Coordinate.readY(y, max), Coordinate.readX(x));
@@ -93,13 +100,18 @@ class Sudoku {
 
 	// Defines the files we want to solve.
 	boolean setFile(String name) {
-		File in = new File(name);
-		if(!in.exists()) {
+		File file = new File(name);
+		if(!file.exists()) {
 			System.out.println("File does not exist: " + name);
 			return false;
 		}
-		if(!fileList.contains(name))
-			fileList.add(name);
+		try {
+			InputStream input = new FileInputStream(file);
+			inputList.add(input);
+		} catch(FileNotFoundException e) {
+			System.out.println(e);
+			return false;
+		}
 		return true;
 	}
 
@@ -130,48 +142,6 @@ class Sudoku {
 	// VERBOSE mode displays the actions and the matrix for each solution passage.
 	void setVerbose() {
 		VERBOSE = true;
-	}
-
-	void read(int depth) {
-		Debug.log("read()", depth++);
-		Scanner in = new Scanner(System.in);
-		String row = null;
-		Position position = new Position(0, 0);
-		for(int y = 0; y < Position.getMax(); y++) {
-			if(INTERACTIVE)
-				System.out.print("ROW[" + y + "] = ");
-			try {
-				row = in.nextLine();
-			} catch(NoSuchElementException e) {
-				row = null; // empty line
-			} catch(Exception e) {
-				System.out.println(e);
-				return;
-			}
-			int length = (row != null)? row.length(): 0;
-			for(int x = 0; x < Position.getMax(); x++, position.forward(Area.HORIZONTAL))
-				if(x < length)
-					if(row.charAt(x) == ' ')
-						matrix.setNumber(position, 0, depth);
-					else
-						matrix.setNumber(position, row.charAt(x) - Coordinate.ZERO, depth);
-				else
-					matrix.setNumber(position, 0, depth);
-		}
-	}
-
-	void run() {
-		System.out.println();
-		System.out.println(Matrix.diluted("SUDOKU"));
-		if(matrix == null)
-			matrix = new Matrix(Position.getMax());
-		if(INTERACTIVE)
-			System.out.println();
-		int depth = 0;
-		read(depth);
-		matrix.print();
-		if(SOLVE)
-			solve(depth);
 	}
 
 	// Full House
@@ -352,12 +322,15 @@ class Sudoku {
 						case  VERTICAL:
 							ArrayList<Position> matches = matrix.cleanMatchCandidates(area, position, numbers, 2, depth);
 							if(matches.size() == limit) {
-								for(Integer number: numbers)
-									matrix.removeCandidateIf(area, position, number, matches, depth);
 								if(VERBOSE)
 									System.out.println(Method.valueOfCode(Method.NAKED.code + limit).name() + ":" +
 										" found Numbers" + matrix.getCandidates(position, depth) +
 										" at Positions" + matches);
+								for(Integer number: numbers) {
+									ArrayList<Position> removed = matrix.removeCandidateIf(area, position, number, matches, depth);
+									if((removed.size() > 0) && VERBOSE)
+										System.out.println("  Removing Candidate[" + number + "] from Positions" + removed);
+								}
 							}
 							break;
 					}
@@ -458,12 +431,15 @@ class Sudoku {
 						case  VERTICAL:
 							ArrayList<Position> matches = matrix.dirtyMatchCandidates(area, position, numbers, 2, depth);
 							if(matches.size() == limit) {
-								for(Integer number: numbers)
-									matrix.removeCandidateIf(area, position, number, matches, depth);
 								if(VERBOSE)
 									System.out.println(Method.valueOfCode(Method.HIDDEN.code + limit).name() + ":" +
 										" found Numbers" + matrix.getCandidates(position, depth) +
 										" at Positions" + matches);
+								for(Integer number: numbers) {
+									ArrayList<Position> removed = matrix.removeCandidateIf(area, position, number, matches, depth);
+									if((removed.size() > 0) && VERBOSE)
+										System.out.println("    Removing Candidate[" + number + "] from Positions" + removed);
+								}
 							}
 							break;
 					}
@@ -482,6 +458,11 @@ class Sudoku {
 			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
 				added += setHiddenSubset(position, limit, depth);
 		return added;
+	}
+
+	void pause() {
+		Scanner in = new Scanner(System.in);
+		String x = in.nextLine();
 	}
 
 	void solve(int depth) {
@@ -560,7 +541,7 @@ class Sudoku {
 				if(INTERACTIVE) {
 					String pause = null;
 					try {
-						pause = in.nextLine();
+						pause();
 					} catch(Exception e) {
 						System.out.println(e);
 					}
@@ -601,7 +582,7 @@ class Sudoku {
 		System.out.println("duration " + String.format(decimal, duration) + " " + unit);
 	}
 
-	public static void help() {
+	void help() {
 		System.out.println("Sudoku.java by Kostas Dimou @ 2019");
 		System.out.println();
 		System.out.println("Usage:");
@@ -679,11 +660,83 @@ class Sudoku {
 		System.out.println("    java Sudoku -s -m FULL_HOUSE -m NAKED_SINGLE < Sudoku.9x9.0001");
 	}
 
-	public static void main(String[] args) {
-		Sudoku sudoku = new Sudoku();
+	boolean readNumbers(InputStream input, int depth) {
+		Debug.log("readNumbers()", depth++);
+		Scanner scan = new Scanner(input);
+		String row = null;
+		Position position = new Position(0, 0);
+		int max = Position.getMax();
+		for(int y = 0; y < Position.getMax(); y++) {
+			if(INTERACTIVE)
+				System.out.print("ROW[" + y + "] = ");
+			try {
+				row = scan.nextLine();
+			} catch(NoSuchElementException e) {
+				row = null; // empty line
+			} catch(Exception e) {
+				System.out.println(e);
+				return false;
+			}
+			int width = Coordinate.digitsMax(max);
+			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
+				if(row == null)
+					matrix.setNumber(position, 0, depth);
+				else
+					if(row.length() < width)
+						matrix.setNumber(position, 0, depth);
+					else {
+						String cell = row.substring(0, width).trim();
+						if(cell.equals(""))
+							matrix.setNumber(position, 0, depth);
+						else {
+							int number = 0;
+							try {
+								number = Integer.parseInt(cell);
+							} catch(Exception e) {
+								System.out.println(e);
+								return false;
+							}
+							if(number > max) {
+								System.out.println("Number out of range (1.." + max + ") at position " + position + ": " + number);
+								return false;
+							}
+							matrix.setNumber(position, number, depth);
+						}
+						row = row.substring(width);
+					}
+		}
+		return true;
+	}
+
+	void run() {
+		System.out.println();
+		System.out.println(Matrix.diluted("SUDOKU"));
+		if(INTERACTIVE)
+			System.out.println();
+		int depth = 0;
+		for(InputStream input: inputList) {
+			if(readNumbers(input, depth)) {
+				matrix.print();
+				if(SOLVE)
+					solve(depth);
+			}
+		}
+	}
+
+	boolean validateArguments() {
+		if(inputList.size() == 0)
+			inputList.add(System.in);
+		if(matrix == null)
+			matrix = new Matrix(Position.getMax());
+		if(matrix == null)
+			return false;
+		return true;
+	}
+
+	boolean readArguments(String[] arguments) {
 		String next = null;
-		if(args.length > 0)
-			for(String argument: args) {
+		if(arguments.length > 0)
+			for(String argument: arguments) {
 				if(next == null) {
 					if(argument.equals("-a") || argument.equals("--analyze"))
 						Matrix.setAnalyze(true);
@@ -696,46 +749,53 @@ class Sudoku {
 					else if(argument.equals("-g") || argument.equals("--go"))
 						next = "-g";
 					else if(argument.equals("-h") || argument.equals("--help")) {
-						sudoku.help();
-						return;
+						help();
+						return false;
 					}
 					else if(argument.equals("-i") || argument.equals("--interactive"))
-						sudoku.setInteractive();
+						setInteractive();
 					else if(argument.equals("-m") || argument.equals("--method"))
 						next = "-m";
 					else if(argument.equals("-s") || argument.equals("--solve"))
-						sudoku.setSolve();
+						setSolve();
 					else if(argument.equals("-v") || argument.equals("--verbose"))
-						sudoku.setVerbose();
+						setVerbose();
 					else if(argument.equals("-w") || argument.equals("--width"))
 						next = "-w";
 					else {
 						System.out.println("Unsupported flag: " + argument);
-						return;
+						return false;
 					}
 				} else
 					if(next.equals("-c")) {
 						if(!Coordinate.setFormat(argument))
-							return;
+							return false;
 						next = null;
 					} else if(next.equals("-f")) {
-						if(!sudoku.setFile(argument))
-							return;
+						if(!setFile(argument))
+							return false;
 						next = null;
 					} else if(next.equals("-g")) {
-						if(!sudoku.setGo(argument))
-							return;
+						if(!setPosition(argument))
+							return false;
 						next = null;
 					} else if(next.equals("-m")) {
-						if(!sudoku.setMethod(argument))
-							return;
+						if(!setMethod(argument))
+							return false;
 						next = null;
 					} else if(next.equals("-w")) {
-						if(!sudoku.setMax(argument))
-							return;
+						if(!setMax(argument))
+							return false;
 						next = null;
 					}
 			}
-		sudoku.run();
+		return true;
+	}
+
+	public static void main(String[] arguments) {
+		Sudoku sudoku = new Sudoku();
+		if(sudoku.readArguments(arguments))
+			if(sudoku.validateArguments())
+				sudoku.run();
 	}
 }

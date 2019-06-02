@@ -4,8 +4,8 @@ public class Coordinate {
 	public static final char ZERO = '0';
 
 	public enum Format {
-		CHESS, // Y=9-1, X=A-I
-		JAVA, // Y=0-9, X=0-9 (default)
+		CHESS,  // Y=9-1, X=A-I
+		JAVA,   // Y=0-9, X=0-9 (default)
 		ROWCOL, // Y=R1-R9, X=C1-C9
 		SUDOKU; // Y=A-I, X=1-9
 	}
@@ -42,26 +42,31 @@ public class Coordinate {
 	//
 	public static boolean validY(String y, int max) {
 		// Check prefix R - ROWCOL
+		int widthY = Coordinate.widthY(max);
+		if(y.length() < widthY)
+			return false;
 		if(format == Format.ROWCOL) {
 			if(y.charAt(0) != 'R')
 				return false;
-			y = y.substring(1, y.length());
+			y = y.substring(1);
 		}
 		// Letter -> Number SUDOKU
-		int i = 0;
 		if(y.charAt(0) >= ALPHA) {
 			if(format != Format.SUDOKU)
 				return false;
-			i = y.charAt(0) - ALPHA;
-		} else
-			i = Integer.valueOf(y);
+			String a2n = "";
+			for(int i = 0; i < widthY; i++)
+				a2n += (char)(y.charAt(i) - ALPHA + ZERO);
+			y = a2n;
+		}
+		int n = Integer.parseInt(y);
 		// Invert range - CHESS
 		if(format == Format.CHESS)
-			i = max - i;
+			n = max - n;
 		// Range shift - ROWCOL
 		if(format == Format.ROWCOL)
-			i--;
-		if(i > max - 1)
+			n--;
+		if((n < 0) || (n >= max))
 			return false;
 		return true;
 	}
@@ -75,23 +80,28 @@ public class Coordinate {
 	//
 	public static boolean validX(String x, int max) {
 		// Check prefix C - ROWCOL
+		int widthX = Coordinate.widthX(max);
+		if(x.length() < widthX)
+			return false;
 		if(format == Format.ROWCOL) {
 			if(x.charAt(0) != 'C')
 				return false;
-			x = x.substring(1, x.length());
+			x = x.substring(1);
 		}
 		// Letter -> Number CHESS
-		int i = 0;
 		if(x.charAt(0) >= ALPHA) {
 			if(format != Format.CHESS)
 				return false;
-			i = x.charAt(0) - ALPHA;
-		} else
-			i = Integer.valueOf(x);
+			String a2n = "";
+			for(int i = 0; i < widthX; i++)
+				a2n += (char)(x.charAt(i) - ALPHA + ZERO);
+			x = a2n;
+		}
+		int n = Integer.parseInt(x);
 		// Range shift - ROWCOL, SUDOKU
 		if((format == Format.ROWCOL) || (format == Format.SUDOKU))
-			i--;
-		if(i > ZERO + max - 1)
+			n--;
+		if((n < 0) || (n >= max))
 			return false;
 		return true;
 	}
@@ -146,19 +156,18 @@ public class Coordinate {
 	}
 
 	// Returns the y according to the coordinate format.
-	public static String Y(int y, int max) {
+	public static String Y(Integer y, int max) {
 		String s = null;
-		Integer i = y;
 		switch(format) {
 			case CHESS: // Y=9-1, X=A-I
-				i = max - i;
-				s =  i.toString();
+				y = max - y;
+				s =  y.toString();
 				break;
 			case JAVA: // Y=0-9, X=0-9
-				s =  i.toString();
+				s =  y.toString();
 				break;
 			case ROWCOL: // Y=R1-R9, X=C1-C9
-				s =  "R" + (++i).toString();
+				s =  "R" + (++y).toString();
 				break;
 			case SUDOKU: // Y=A-I, X=1-9
 				char c = ALPHA;
@@ -170,9 +179,8 @@ public class Coordinate {
 	}
 
 	// Returns the x according to the coordinate format.
-	public static String X(int x) {
+	public static String X(Integer x) {
 		String s = null;
-		Integer i = x;
 		switch(format) {
 			case CHESS: // Y=9-1, X=A-I
 				char c = ALPHA;
@@ -180,15 +188,66 @@ public class Coordinate {
 				s = Character.toString(c);
 				break;
 			case JAVA: // Y=0-9, X=0-9
-				s = i.toString();
+				s = x.toString();
 				break;
 			case ROWCOL: // Y=R1-R9, X=C1-C9
-				s = "C" + (++i).toString();
+				s = "C" + (++x).toString();
 				break;
 			case SUDOKU: // Y=A-I, X=1-9
-				s = (++i).toString();
+				s = (++x).toString();
 				break;
 		}
 		return s;
+	}
+
+	public static int digitsMax(Integer max) {
+		String digits = max.toString();
+		return  digits.length();
+	}
+
+	public static int lettersMax(Integer max) {
+		return (max - 1) / 26 + 1;
+	}
+
+	// Returns the maximum width of the y according to the coordinate format.
+	public static int widthY(int max) {
+		switch(format) {
+			case ROWCOL: // Y=R1-R9, X=C1-C9
+				return 1 + digitsMax(max);
+			case SUDOKU: // Y=A-I, X=1-9
+				return lettersMax(max);
+		}
+		return digitsMax(max);
+	}
+
+	// Returns the maximum width of the x according to the coordinate format.
+	public static int widthX(int max) {
+		switch(format) {
+			case CHESS: // Y=9-1, X=A-I
+				return lettersMax(max);
+			case ROWCOL: // Y=R1-R9, X=C1-C9
+				 return 1 + digitsMax(max);
+		}
+		return digitsMax(max);
+	}
+
+	// Returns the formatted y according to the coordinate format.
+	public static String formattedY(String y, int max) {
+		String yFormat = "%";
+		int width =  widthY(max);
+		if(width > 1)
+			yFormat += width;
+		yFormat += "s";
+		return String.format(yFormat, y);
+	}
+
+	// Returns the formatted x according to the coordinate format.
+	public static String formattedX(String x, int max) {
+		String xFormat = "%";
+		int width =  widthX(max);
+		if(width > 1)
+			xFormat += width;
+		xFormat += "s";
+		return String.format(xFormat, x);
 	}
 }

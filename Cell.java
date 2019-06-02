@@ -54,6 +54,13 @@ class Cell {
 		return number;
 	}
 
+	String formattedNumber() {
+		int width = Coordinate.digitsMax(position.getMax());
+		if(number == MISSING)
+			return String.format("%" + width + "s", " ");
+		return String.format("%" + width + "d", number);
+	}
+
 	int count(int exception) {
 		if((number != MISSING) && (number != exception))
 			return 1;
@@ -134,10 +141,14 @@ class Cell {
 		return false;
 	}
 
-	void removeCandidate(int number) {
+	boolean removeCandidate(int number) {
 		int index = candidates.indexOf(number);
 		if(index >= 0)
+		{
 			candidates.remove(index);
+			return true;
+		}
+		return false;
 	}
 
 	int countCandidates() {
