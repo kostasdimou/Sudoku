@@ -87,16 +87,20 @@ class Cell {
 
 	// CANDIDATES //
 	
-	void setCandidate(int number) {
-		candidates.add(number);
+	void setCandidate(int candidate) {
+		candidates.add(candidate);
 	}
 
-	void setCandidates(ArrayList<Integer> l) {
-		candidates = l;
+	void setCandidates(ArrayList<Integer> candidates) {
+		this.candidates = candidates;
 	}
 
 	ArrayList<Integer> getCandidates() {
 		return candidates;
+	}
+
+	int countCantidates() {
+		return candidates.size();
 	}
 
 	ArrayList<Integer> allNumbers(int max) {
@@ -110,7 +114,7 @@ class Cell {
 		return numbers.equals(candidates);
 	}
 
-	// Returns true if the candidates have at least minimum from the given numbers and none different
+	// Returns true if the candidates contain at least minimum of the given numbers and none different
 	boolean cleanSubset(ArrayList<Integer> numbers, int minimum) {
 		int counter = 0;
 		for(Integer number: candidates)
@@ -123,7 +127,7 @@ class Cell {
 		return false;
 	}
 
-	// Returns true if the candidates have at least minimum from the given numbers and maybe some different
+	// Returns true if the candidates contain at least minimum of the given numbers and maybe some more different
 	boolean dirtySubset(ArrayList<Integer> numbers, int minimum) {
 		int counter = 0;
 		for(Integer number: candidates)

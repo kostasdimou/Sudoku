@@ -41,8 +41,12 @@ class Position {
 		return MIN;
 	}
 
-	public static int getTotal() {
+	public static int getTotalNumbers() {
 		return TOTAL;
+	}
+
+	public static int getTotalCandidates() {
+		return TOTAL * TOTAL;
 	}
 
 	// Checks the range of the coordinate.

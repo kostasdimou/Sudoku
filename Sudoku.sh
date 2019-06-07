@@ -19,9 +19,9 @@ function check() {
 } # function check()
 # ------------------------------------------------------------------------------
 echo ===== COMPILING =====
-PAUSE=1
 ERRNO=0
-COMPILER_OPTIONS="-Xmaxerrs 10 -Xmaxwarns 10"
+PAUSE=0
+PAUSE_MEMORY=$PAUSE PAUSE=0
 for JAVA in *.java
 do
 	CLASS=${JAVA%.java}.class
@@ -31,6 +31,7 @@ do
 		[ $ERRNO != 0 ] && break
 	fi
 done
+PAUSE=1
 if [ $ERRNO == 0 ]
 then
 	if [ $# == 0 ]

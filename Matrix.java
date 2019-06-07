@@ -90,19 +90,18 @@ class Matrix {
 
 	// Sets the number and removes the equivalent candidates
 	// from the block, the horizontal and vertical lines.
-	int setNumber(Position position, int number, int depth) {
+	void setNumber(Position position, int number, int depth) {
 		Debug.log("setNumber(position = " + position + ", number = " + number + ")", depth++);
-		if(position == null)
-			return 0;
-		cells[position.getY()][position.getX()].setNumber(number);
-		if(number != Cell.MISSING) {
-			ArrayList<Position> exceptions = new ArrayList<Position>();
-			exceptions.add(position);
-			removeCandidateIf(Area.HORIZONTAL, position, number, exceptions, depth);
-			removeCandidateIf(Area.VERTICAL, position, number, exceptions, depth);
-			removeCandidateIf(Area.BLOCK, position, number, exceptions, depth);
+		if(position != null) {
+			cells[position.getY()][position.getX()].setNumber(number);
+			if(number != Cell.MISSING) {
+				ArrayList<Position> exceptions = new ArrayList<Position>();
+				exceptions.add(position);
+				removeCandidateIf(Area.HORIZONTAL, position, number, exceptions, depth);
+				removeCandidateIf(Area.VERTICAL, position, number, exceptions, depth);
+				removeCandidateIf(Area.BLOCK, position, number, exceptions, depth);
+			}
 		}
-		return 1;
 	}
 
 	// Count the non-empty cells omitting the exception.
@@ -159,13 +158,23 @@ class Matrix {
 		return getCell(position, depth).isEmpty();
 	}
 
-	// Count all cells
-	int countAll() {
+	// Count the resolved numbers from all cells
+	int countNumbers() {
 		int max = Position.getMax();
 		int counter = 0;
 		for(int y = 0; y < max; y++)
 			for(int x = 0; x < max; x++)
 				counter += cells[y][x].count();
+		return counter;
+	}
+
+	// Count the remaining candidates from all cells
+	int countCandidates() {
+		int max = Position.getMax();
+		int counter = 0;
+		for(int y = 0; y < max; y++)
+			for(int x = 0; x < max; x++)
+				counter += cells[y][x].countCandidates();
 		return counter;
 	}
 
@@ -458,7 +467,8 @@ class Matrix {
 			line += "|";
 			System.out.println(line);
 		}
-		printHorizontalDelimiter(" (" + countAll() + ")");
+		printHorizontalDelimiter(" (N-" + countNumbers() + ", C-" + countCandidates() + ")");
+		System.out.println(); // blank line
 		if(ANALYZE)
 			analyze();
 	}

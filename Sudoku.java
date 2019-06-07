@@ -12,7 +12,6 @@ class Sudoku {
 	private static boolean INTERACTIVE = false;
 	private static boolean SOLVE = false;
 	private static boolean VERBOSE = false;
-	private int passages = 0;
 	private long startTime = 0;
 	private long endTime = 0;
 	private ArrayList<InputStream> inputList = new ArrayList<InputStream>();
@@ -80,7 +79,7 @@ class Sudoku {
 		INTERACTIVE = true;
 	}
 
-	// Activates the methods we want to use for the solution.
+	// Defines the methods we want to use for the solution.
 	boolean setMethod(String name) {
 		boolean found = false;
 		for(Method method: Method.values())
@@ -167,9 +166,8 @@ class Sudoku {
 	//   |---+---+---|---+---+---|---+---+---|
 	// R9|   |   |   |   | 9 |   |   |   |   |
 	//   |===========|===========|===========|
-	int setFullHouse(Position position, int depth) {
+	void setFullHouse(Position position, int depth) {
 		Debug.log("setFullHouse(position = " + position + ")", depth++);
-		int added = 0;
 		Cell cell = matrix.getCell(position, depth);
 		if(cell.isEmpty()) {
 			if(VERBOSE)
@@ -179,7 +177,7 @@ class Sudoku {
 				if((matrix.count(Area.BLOCK, position, missing, depth) == max - 1) ||
 				  (matrix.count(Area.HORIZONTAL, position, missing, depth) == max - 1) ||
 				  (matrix.count(Area.VERTICAL, position, missing, depth) == max - 1)) {
-					added += matrix.setNumber(position, missing, depth);
+					matrix.setNumber(position, missing, depth);
 					if(VERBOSE)
 						System.out.println(Method.FULL_HOUSE.name() + ":" +
 							" missing Number(" + missing +")" +
@@ -188,18 +186,15 @@ class Sudoku {
 				}
 			}
 		}
-		return added;
 	}
 
-	int setAllFullHouses(int depth) {
+	void setAllFullHouses(int depth) {
 		Debug.log("setAllFullHouses()", depth++);
-		int added = 0;
 		Position position = new Position(0, 0);
 		int max = Position.getMax();
 		for(int y = 0; y < max; y++)
 			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
-				added += setFullHouse(new Position(y, x), depth);
-		return added;
+				setFullHouse(new Position(y, x), depth);
 	}
 
 	// Naked Single aka Forced Digit aka Sole Candidate
@@ -225,34 +220,30 @@ class Sudoku {
 	//   |---+---+---|---+---+---|---+---+---|
 	// R9|   |   |   |   |   |   |   |   |   |
 	//   |===========|===========|===========|
-	int setNakedSingle(Position position, int depth) {
+	void setNakedSingle(Position position, int depth) {
 		Debug.log("setNakedSingle(position = " + position + ")", depth++);
-		int added = 0;
 		Cell cell = matrix.getCell(position, depth);
 		if(cell.isEmpty()) {
 			if(VERBOSE)
 				cell.println();
 			if(cell.countCandidates() == 1) {
 				int single = matrix.getCandidateAt(position, 0, depth);
-				added += matrix.setNumber(position, single, depth);
+				matrix.setNumber(position, single, depth);
 				if(VERBOSE)
 					System.out.println(Method.NAKED_SINGLE.name() + ":" +
 						" single Number(" + single +")" +
 						" at Position" + position);
 			}
 		}
-		return added;
 	}
 
-	int setAllNakedSingles(int depth) {
+	void setAllNakedSingles(int depth) {
 		Debug.log("setAllNakedSingles()", depth++);
-		int added = 0;
 		Position position = new Position(0, 0);
 		int max = Position.getMax();
 		for(int y = 0; y < max; y++)
 			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
-				added += setNakedSingle(position, depth);
-		return added;
+				setNakedSingle(position, depth);
 	}
 
 	// Naked Pair aka Conjugate Pair
@@ -342,13 +333,13 @@ class Sudoku {
 
 	int setAllNakedSubsets(int limit, int depth) {
 		Debug.log("setAllNakedSubsets(limit = " + limit + ")", depth++);
-		int added = 0;
+		int removedCandidates = 0;
 		Position position = new Position(0, 0);
 		int max = Position.getMax();
 		for(int y = 0; y < max; y++)
 			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
-				added += setNakedSubset(position, limit, depth);
-		return added;
+				removedCandidates += setNakedSubset(position, limit, depth);
+		return removedCandidates;
 	}
 
 	// Hidden Single aka Pinned Digit
@@ -375,9 +366,8 @@ class Sudoku {
 	//   |---+---+---|---+---+---|---+---+---|
 	// R9|   |   |   |   |   |   |   |   |   |
 	//   |===========|===========|===========|
-	int setHiddenSingle(Position position, int depth) {
+	void setHiddenSingle(Position position, int depth) {
 		Debug.log("setHiddenSingle(position = " + position + ")", depth++);
-		int added = 0;
 		Cell cell = matrix.getCell(position, depth);
 		if(cell.isEmpty()) {
 			if(VERBOSE)
@@ -388,7 +378,7 @@ class Sudoku {
 				  (matrix.countCandidateIf(Area.BLOCK, position, hidden, depth) == 1) ||
 				  (matrix.countCandidateIf(Area.HORIZONTAL, position, hidden, depth) == 1) ||
 				  (matrix.countCandidateIf(Area.VERTICAL, position, hidden, depth) == 1)) {
-					added += matrix.setNumber(position, hidden, depth);
+					matrix.setNumber(position, hidden, depth);
 					if(VERBOSE)
 						System.out.println(Method.HIDDEN_SINGLE.name() + ":" +
 							" single Number(" + hidden +")" +
@@ -397,18 +387,15 @@ class Sudoku {
 				}
 			}
 		}
-		return added;
 	}
 
-	int setAllHiddenSingles(int depth) {
+	void setAllHiddenSingles(int depth) {
 		Debug.log("setAllHiddenSingles()", depth++);
-		int added = 0;
 		Position position = new Position(0, 0);
 		int max = Position.getMax();
 		for(int y = 0; y < max; y++)
 			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
-				added += setHiddenSingle(position, depth);
-		return added;
+				setHiddenSingle(position, depth);
 	}
 
 	// Hidden Pair aka Hidden Twins
@@ -451,13 +438,13 @@ class Sudoku {
 
 	int setAllHiddenSubsets(int limit, int depth) {
 		Debug.log("setAllHiddenSubsets(limit = " + limit + ")", depth++);
-		int added = 0;
+		int removedCandidates = 0;
 		Position position = new Position(0, 0);
 		int max = Position.getMax();
 		for(int y = 0; y < max; y++)
 			for(int x = 0; x < max; x++, position.forward(Area.HORIZONTAL))
-				added += setHiddenSubset(position, limit, depth);
-		return added;
+				removedCandidates += setHiddenSubset(position, limit, depth);
+		return removedCandidates;
 	}
 
 	void pause() {
@@ -468,12 +455,15 @@ class Sudoku {
 	void solve(int depth) {
 		Debug.log("solve()", depth++);
 		startTime = System.nanoTime();
+		// If none method is defined then define all active ones
 		if(methodList.size() == 0)
 			for(Method method: Method.values())
-				methodList.add(method);
-		int total = Position.getTotal();
-		int added = total;
-		if(goList.size() > 0)
+				if(method.active)
+					methodList.add(method);
+		int passages = 0;
+		if(goList.size() > 0) {
+			int numbers = matrix.countNumbers();
+			int candidates = matrix.countCandidates();
 			for(Position position: goList) {
 				// REMOVERS
 				for(Method method: Method.values())
@@ -494,21 +484,23 @@ class Sudoku {
 							break;
 					}
 				// SETTERS
-				added = 0;
 				if(methodList.contains(Method.FULL_HOUSE))
-					added += setFullHouse(position, depth);
+					setFullHouse(position, depth);
 				if(methodList.contains(Method.NAKED_SINGLE))
-					added += setNakedSingle(position, depth);
+					setNakedSingle(position, depth);
 				if(methodList.contains(Method.HIDDEN_SINGLE))
-					added += setHiddenSingle(position, depth);
-				Debug.var("added", added, depth);
-				if((added > 0) && VERBOSE)
+					setHiddenSingle(position, depth);
+				if(((numbers < matrix.countNumbers()) || (candidates > matrix.countCandidates())) && VERBOSE)
 					matrix.print();
 			}
-		else {
-			int counter = matrix.countAll();
-			while((counter < total) && (added > 0)) {
+		} else {
+			int numbers = 0;
+			int candidates = 0;
+			int totalNumbers = Position.getTotalNumbers();
+			do {
 				passages++;
+				numbers = matrix.countNumbers();
+				candidates = matrix.countCandidates();
 				// REMOVERS
 				for(Method method: Method.values())
 					switch(method) {
@@ -528,15 +520,13 @@ class Sudoku {
 							break;
 					}
 				// SETTERS
-				added = 0;
 				if(methodList.contains(Method.FULL_HOUSE))
-					added += setAllFullHouses(depth);
+					setAllFullHouses(depth);
 				if(methodList.contains(Method.NAKED_SINGLE))
-					added += setAllNakedSingles(depth);
+					setAllNakedSingles(depth);
 				if(methodList.contains(Method.HIDDEN_SINGLE))
-					added += setAllHiddenSingles(depth);
-				Debug.var("added", added, depth);
-				if((added > 0) && VERBOSE)
+					setAllHiddenSingles(depth);
+				if(((numbers < matrix.countNumbers()) || (candidates > matrix.countCandidates())) && VERBOSE)
 					matrix.print();
 				if(INTERACTIVE) {
 					String pause = null;
@@ -546,16 +536,16 @@ class Sudoku {
 						System.out.println(e);
 					}
 				}
-				counter += added;
-			}
+			} while((totalNumbers > matrix.countNumbers()) &&
+				((numbers < matrix.countNumbers()) || (candidates > matrix.countCandidates())));
 		}
 		endTime = System.nanoTime();
 		if(!VERBOSE)
 			matrix.print();
-		statistics();
+		statistics(passages);
 	}
 
-	void statistics() {
+	void statistics(int passages) {
 		System.out.println();
 		System.out.println(matrix.diluted("STATISTICS"));
 		System.out.println();
