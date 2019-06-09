@@ -4,8 +4,6 @@ import java.lang.IllegalArgumentException;
 class Cell {
 	public static final int MISSING = 0;
 
-	private static final String[] MULTIPLE = {"NOTHING", "SINGLE", "PAIR", "TRIPLE", "QUAD", "QUINT"};
-
 	private int number = MISSING;
 	private ArrayList<Integer> candidates;
 	private Position position; // for printing purposes
@@ -110,15 +108,15 @@ class Cell {
 		return all;
 	}
 
-	boolean equalsCandidates(ArrayList<Integer> numbers) {
-		return numbers.equals(candidates);
+	boolean equalsCandidates(ArrayList<Integer> candidates) {
+		return candidates.equals(this.candidates);
 	}
 
 	// Returns true if the candidates contain at least minimum of the given numbers and none different
-	boolean cleanSubset(ArrayList<Integer> numbers, int minimum) {
+	boolean cleanSubset(ArrayList<Integer> candidates, int minimum) {
 		int counter = 0;
-		for(Integer number: candidates)
-			if(numbers.indexOf(number) == -1)
+		for(Integer candidate: this.candidates)
+			if(candidates.indexOf(candidate) == -1)
 				return false;
 			else
 				counter++;
@@ -128,25 +126,25 @@ class Cell {
 	}
 
 	// Returns true if the candidates contain at least minimum of the given numbers and maybe some more different
-	boolean dirtySubset(ArrayList<Integer> numbers, int minimum) {
+	boolean dirtySubset(ArrayList<Integer> candidates, int minimum) {
 		int counter = 0;
-		for(Integer number: candidates)
-			if(numbers.indexOf(number) != -1)
+		for(Integer candidate: this.candidates)
+			if(candidates.indexOf(candidate) != -1)
 				counter++;
 		if(counter >= minimum)
 			return true;
 		return false;
 	}
 
-	boolean existsCandidate(int number) {
-		int index = candidates.indexOf(number);
+	boolean existsCandidate(int candidate) {
+		int index = candidates.indexOf(candidate);
 		if(index >= 0)
 			return true;
 		return false;
 	}
 
-	boolean removeCandidate(int number) {
-		int index = candidates.indexOf(number);
+	boolean removeCandidate(int candidate) {
+		int index = candidates.indexOf(candidate);
 		if(index >= 0)
 		{
 			candidates.remove(index);
@@ -159,19 +157,12 @@ class Cell {
 		return candidates.size();
 	}
 
-	int getCandidateAt(int index) {
-		return candidates.get(index);
-	}
-
 	// PRINT //
 
 	public String toString() {
 		String s = "Cell" + position;
 		if(number == MISSING) {
 			s += " Candidates" + candidates;
-			int size = candidates.size();
-			if((size > 0) && (size < MULTIPLE.length))
-				s += " - " + MULTIPLE[size];
 		}
 		else
 			s += " Number(" + number + ")";

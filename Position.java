@@ -18,13 +18,11 @@ class Position {
 	}
 
 	Position(int y, int x) {
-		setY(y);
-		setX(x);
+		set(y, x);
 	}
 
 	Position(Position position) {
-		setY(position.y);
-		setX(position.x);
+		set(position.y, position.x);
 	}
 
 	public static void setMax(int max) {
@@ -79,6 +77,11 @@ class Position {
 		this.x = x;
 	}
 
+	public void set(int y, int x) {
+		setY(y);
+		setX(x);
+	}
+
 	public int getX() {
 		return x;
 	}
@@ -102,20 +105,24 @@ class Position {
 		System.out.println(toString());
 	}
 
-	// Position comparison.
+	// Position coordinates comparison.
 	boolean equals(int y, int x) {
 		if(y == this.y)
 			return (x == this.x);
 		return false;
 	}
 
-	// Overriding Object.equals.
-	boolean equals(Position x) {
-		if(x == null)
+	boolean equals(Position position) {
+		if(position == null)
 			return false;
-		if(x == this)
+		if(position == this)
 			return true;
-		return equals(x.y, x.x);
+		return equals(position.y, position.x);
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		return equals((Position)object);
 	}
 
 	// Returns the position of the container block
@@ -125,80 +132,136 @@ class Position {
 	}
 
 	// Increments the position according to the given area
-	void forward(Area a, int step) {
+	Position forward(Area a, int step) {
 		switch(a) {
+			case BUCKET_HORIZONTAL:
+				if(x + step < (x / MIN + 1) * MIN)
+					x += step;
+				else
+					return null;
+				break;
+			case BUCKET_VERTICAL:
+				if(y + step < (y / MIN + 1) * MIN)
+					y += step;
+				else
+					return null;
+				break;
 			case DIAGONAL:
 				if((y + step < MAX) && (x + step < MAX)) {
 					y += step;
 					x += step;
-				}
+				} else
+					return null;
 				break;
 			case HORIZONTAL:
+				if(x + step < MAX)
+					x += step;
+				else
+					return null;
+				break;
+			case VERTICAL:
+				if(y + step < MAX)
+					y += step;
+				else
+					return null;
+				break;
+			case BLOCK:
+				if(x + step < (x / MIN + 1) * MIN)
+					x += step;
+				else
+					if(y + step < (y / MIN + 1) * MIN) {
+						x = x / MIN * MIN;
+						y += step;
+					} else
+						return null;
+				break;
+			case ALL:
 				if(x + step < MAX)
 					x += step;
 				else
 					if(y + step < MAX) {
 						x = 0;
 						y += step;
-					}
-				break;
-			case VERTICAL:
-				if(y + step < MAX)
-					y += step;
-				else
-					if(x + step < MAX) {
-						y = 0;
-						x += step;
-					}
+					} else
+						return null;
 				break;
 		}
+		return this;
 	}
 
-	void forward(Area a) {
-		forward(a, 1);
+	Position forward(Area a) {
+		return forward(a, 1);
 	}
 
 	// Decrements the position according to the given area
-	void backward(Area a, int step) {
+	Position backward(Area a, int step) {
 		switch(a) {
+			case BUCKET_HORIZONTAL:
+				if(x - step >= x / MIN * MIN)
+					x -= step;
+				else
+					return null;
+				break;
+			case BUCKET_VERTICAL:
+				if(y - step >= y / MIN * MIN)
+					y -= step;
+				else
+					return null;
+				break;
 			case DIAGONAL:
 				if((y - step >= 0) && (x - step >= 0)) {
 					y -= step;
 					x -= step;
-				}
+				} else
+					return null;
 				break;
 			case HORIZONTAL:
 				if(x - step >= 0)
 					x -= step;
 				else
-					if(y - step >= 0) {
-						x = MAX;
-						y -= step;
-					}
+					return null;
 				break;
 			case VERTICAL:
 				if(y - step >= 0)
 					y -= step;
 				else
-					if(x - step >= 0) {
-						y = MAX;
-						x -= step;
-					}
+					return null;
+				break;
+			case BLOCK:
+				if(x - step >= x / MIN * MIN)
+					x -= step;
+				else
+					if(y - step >= y / MIN * MIN) {
+						x = (x / MIN) * MIN - step;
+						y -= step;
+					} else
+						return null;
+
+				break;
+			case ALL:
+				if(x - step >= 0)
+					x -= step;
+				else
+					if(y - step >= 0) {
+						x = MAX - step;
+						y -= step;
+					} else
+						return null;
 				break;
 		}
+		return this;
 	}
 
-	void backward(Area a) {
-		backward(a, 1);
+	Position backward(Area a) {
+		return backward(a, 1);
 	}
 
 	// Returns the adjacent position according to the given area, excluding the exception
-	Position next(Area a, int step, Position exception) {
-		Position position = base();
+	Position adjacent(Area a, int step, Position exception) {
 		switch(a) {
 			case HORIZONTAL:
 			case VERTICAL:
-				for(int i = 0; i < MIN * step; i++, position.forward(a, step)) {
+				for(Position position = base(); position != null; position = position.forward(a, step)) {
 					if(position.equals(this))
 						continue;
 					else if(position.equals(exception))
@@ -210,19 +273,19 @@ class Position {
 		return null;
 	}
 
-	Position next(Area a, int step) {
-		return next(a, step, null);
+	Position adjacent(Area a, int step) {
+		return adjacent(a, step, null);
 	}
 
-	Position next(Area a) {
-		return next(a, 1, null);
+	Position adjacent(Area a) {
+		return adjacent(a, 1, null);
 	}
 
-	Position blockNext(Area a, Position blockException) {
-		return next(a, Position.getMin(), blockException);
+	Position blockAdjacent(Area a, Position blockException) {
+		return adjacent(a, Position.getMin(), blockException);
 	}
 
-	Position blockNext(Area a) {
-		return next(a, Position.getMin(), null);
+	Position blockAdjacent(Area a) {
+		return adjacent(a, Position.getMin(), null);
 	}
 }

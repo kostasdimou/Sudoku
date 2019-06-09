@@ -12,30 +12,366 @@
 		<p>
 		<ol>
 			<li><a href=#Strategies>Strategies</a></li>
+			<li><a href=#Files>Files</a></li>
 			<li><a href=#Documents>Documents</a></li>
 		</ol>
 		</p>
 		<h2><font color=blue><a name=Strategies>Strategies</a></font></h2>
 		<p>
-		<dl>
+		<table border=2>
 			<!-- descriptions from http://hodoku.sourceforge.net -->
-			<dt><b>Full House</b></dt>
-			<dd>A Full House is a row, column or box with a single unsolved cell.</dd>
-			<dt><b>Naked Single</b> aka <b>Forced Digit</b> aka <b>Sole Candidate</b></dt>
-			<dd>A naked single is the last remaining candidate in a cell.</dd>
-			<dt><b>Naked Pair</b> aka <b>Locked Pair</b></dt>
-			<dd>If you can find two cells, both in the same house, that have only the same two candidates left, you can eliminate that two candidates from all other cells in that house.</dd>
-			<dd>If the two cells that form the Naked Pair are not only confined to one but to two houses (a row and a block or a column and a block), they are sometimes called a Locked Pair. Candidates can be eliminated from both houses</dd>
-			<dt><b>Naked Triple</b> aka <b>Locked Triple</b></dt>
-			<dd>If you can find three cells, all in the same house, that have only the same three candidates left, you can eliminate that candidates from all other cells in that house. It is important to note that not all cells must contain all three candidates, but there must not be more than three candidates in the three cells all together.</dd>
-			<dd>If the three cells that form the Naked Triple are not only confined to one but to two houses (a row and a block or a column and a block), they are sometimes called a Locked Triple. Candidates can be eliminated from both houses.</dd>
-			<dt><b>Naked Quad</b></dt>
-			<dd>If you can find three cells, all in the same house, that have only the same three candidates left, you can eliminate that candidates from all other cells in that house. It is important to note that not all cells must contain all three candidates, but there must not be more than three candidates in the three cells all together.</dd>
-			<dt><b>Hidden Single</b> aka <b>Pinned Digit</b></dt>
-			<dd>A Hidden Single is a single candidate remaining for a specific digit in a row, column or box. In Sudoku variants, additional constraints can also produce Hidden Singles.</dd>
-			<dt><b>Hidden Pair</b> aka <b>Hidden Twins</b></dt>
-			<dd>If you can find two cells within a house such as that two candidates appear nowhere outside those cells in that house, those two candidates must be placed in the two cells. All other candidates can therefore be eliminated.</dd>
-		</dl>
+			<tr> <th>code</th> <th>strategy</th> <th>aliases</th> <th>sites</th> <th>definition</th> </tr>
+			<tr>
+				<th>FH</th> <td>Full House</td>
+				<td nowrap>
+				</td>
+				<td>
+				</td>
+				<td>A Full House is a row, column or box with a single unsolved cell.</td>
+			</tr>
+			<tr>
+				<th>IS</th> <td>Intersection</td>
+				<td nowrap>
+					Interaction
+					<br>
+					Locked Candidate
+					<br>
+					Box/Row Claim
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_intersections.php">hodoku</a>
+					<a href="https://www.createclassicsudoku.com/solvesudoku_interaction.jsp">createclassicsudoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>NS</th> <td>Naked Single</td>
+				<td nowrap>
+					Forced Digit
+					<br>
+					Sole Candidate
+					<br>
+					Only Candidate
+					<br>
+					One-Choice
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_singles.php">hodoku</a>
+					<a href="https://www.createclassicsudoku.com/solvesudoku_onechoice.jsp">createclassicsudoku</a>
+				</td>
+				<td>
+					A naked single is the last remaining candidate in a cell.
+				</td>
+			</tr>
+			<tr>
+				<th>NP</th> <td>Naked Pair</td>
+				<td nowrap>
+					Naked Twins
+					<br>
+					Locked Pair
+					<br>
+					Subset2
+					<br>
+					Pair
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_naked.php#n2n2">hodoku</a>
+					<a href="http://hodoku.sourceforge.net/en/tech_naked.php#n2l2">hodoku</a>
+					<a href="https://www.createclassicsudoku.com/solvesudoku_subset2.jsp">createclassicsudoku</a>
+				</td>
+				<td>
+					If you can find two cells, both in the same house, that have only the same two candidates left, you can eliminate that two candidates from all other cells in that house.
+					If the two cells that form the Naked Pair are not only confined to one but to two houses (a row and a block or a column and a block), they are sometimes called a Locked Pair. Candidates can be eliminated from both houses.
+				</td>
+			</tr>
+			<tr>
+				<th>NT</th> <td>Naked Triple</td>
+				<td nowrap>
+					Locked Triple
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_naked.php#n3n3">hodoku</a>
+					<a href="http://hodoku.sourceforge.net/en/tech_naked.php#n3l3">hodoku</a>
+				</td>
+				<td>
+					If you can find three cells, all in the same house, that have only the same three candidates left, you can eliminate that candidates from all other cells in that house. It is important to note that not all cells must contain all three candidates, but there must not be more than three candidates in the three cells all together.
+					If the three cells that form the Naked Triple are not only confined to one but to two houses (a row and a block or a column and a block), they are sometimes called a Locked Triple. Candidates can be eliminated from both houses.
+				</td>
+			</tr>
+			<tr>
+				<th>NQ</th> <td>Naked Quadruple</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_naked.php#n4">hodoku</a>
+				</td>
+				<td>
+					If you can find three cells, all in the same house, that have only the same three candidates left, you can eliminate that candidates from all other cells in that house. It is important to note that not all cells must contain all three candidates, but there must not be more than three candidates in the three cells all together.
+				</td>
+			</tr>
+			<tr>
+				<th>HS</th> <td>Hidden Single</td>
+				<td nowrap>
+					Pinned Digit
+					<br>
+					Elimination
+					<br>
+					Loner
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_singles.php">hodoku</a>
+					<a href="https://www.createclassicsudoku.com/solvesudoku_elimination.jsp">createclassicsudoku</a>
+				</td>
+				<td>
+					A Hidden Single is a single candidate remaining for a specific digit in a row, column or box. In Sudoku variants, additional constraints can also produce Hidden Singles.
+				</td>
+			</tr>
+			<tr>
+				<th>HP</th> <td>Hidden Pair</td>
+				<td nowrap>
+					Hidden Twins
+					<br>
+					SubsetPosition2
+				</td>
+					<a href="http://hodoku.sourceforge.net/en/tech_hidden.php#h2">hodoku</a>
+					<a href="https://www.createclassicsudoku.com/solvesudoku_subsetposition2.jsp">createclassicsudoku</a>
+				<td>
+				</td>
+				<td>
+					If you can find two cells within a house such as that two candidates appear nowhere outside those cells in that house, those two candidates must be placed in the two cells. All other candidates can therefore be eliminated.
+				</td>
+			</tr>
+			<tr>
+				<th>HT</th> <td>Hidden Triple</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_hidden.php#h3">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>HQ</th> <td>Hidden Quadruple</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_hidden.php#h4">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>XW</th> <td>X-Wing</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishb.php">hodoku</a>
+					<a href="https://www.createclassicsudoku.com/solvesudoku_xwing.jsp">createclassicsudoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>SW</th> <td>Swordfish</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishb.php#bf3">hodoku</a>
+				</td>
+				<td>
+					Swordfishes work exactly the same way as X-Wings, just with three base and three cover sets instead of only two.
+				</td>
+			</tr>
+			<tr>
+				<th>JF</th> <td>Jellyfish</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishb.php#bf4">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>LF</th> <td>Larger Basic Fish</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishb.php#bf5">hodoku</a>
+				</td>
+				<td>
+					Basic Fish larger than Jellyfish are of course possible, but unnecessary: For any larger fish a complementary smaller one will exist.
+				</td>
+			</tr>
+			<tr>
+				<th>SX</th> <td>Finned/Sashimi X-Wing</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishfs.php#fbf2">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>SS</th> <td>Finned/Sashimi Swordfish</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishfs.php#fbf3">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>SJ</th> <td>Finned/Sashimi Jellyfish</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishfs.php#fbf4">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>LS</th> <td>Larger Finned/Sashimi Fish</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishfs.php#fbf567">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>FF</th> <td>(Finned) Franken Fish</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishc.php#ff">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>MF</th> <td>(Finned) Mutant Fish</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishc.php#mf">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>SF</th> <td>Siamese Fish</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_fishc.php#sf">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>2K</th> <td>2-String Kite</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_sdp.php#t2sk">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>TF</th> <td>Turbot Fish</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_sdp.php#tf">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>ER</th> <td>Empty Rectangle</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_sdp.php#er">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>XY</th> <td>XY-Wing</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_wings.php#xy">hodoku</a>
+					<a href="https://www.createclassicsudoku.com/solvesudoku_xywing.jsp">createclassicsudoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>XZ</th> <td>XYZ-Wing</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_wings.php#xyz">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>WW</th> <td>W-Wing</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_wings.php#w">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<th>SC</th> <td>Sue de Coq</td>
+				<td nowrap>
+				</td>
+				<td>
+					<a href="http://hodoku.sourceforge.net/en/tech_misc.php#sdc">hodoku</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+		</table>
+		</p>
+		<h2><font color=blue><a name=Files>Files</a></font></h2>
+		<p>
+		<table border=2>
+			<tr bgcolor=cyan> <th>file</th> <th>numbers</th> <th>strategy</th> <th>location</th> </tr>
+			<tr> <td> <a href=""></a> <td></td> <td>Intersection</td> <td></td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0000</a> <td>8</td> <td>Naked Single</td> <td>00</td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0001</a> <td>4</td> <td>Hidden Single</td> <td>00</td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0002</a> <td>30</td> <td></td> <td></td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0003</a> <td>27</td> <td></td> <td></td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0004</a> <td>8</td> <td>Hidden Single</td> <td>00</td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0005</a> <td>9</td> <td>Hidden Single</td> <td>00</td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0006</a> <td>24</td> <td></td> <td></td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0007</a> <td>23</td> <td></td> <td></td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0008</a> <td>18</td> <td>Full House</td> <td>04 38 53</td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0009</a> <td>8</td> <td>Naked Single</td> <td>14</td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0010</a> <td>26</td> <td>Naked Pair</td> <td>50</td> </tr>
+			<tr> <td> <a href="">Sudoku.9x9.0011</a> <td>37</td> <td>Naked Pair</td> <td>26</td> </tr>
+			<tr> <td> <a href="http://hodoku.sourceforge.net/en/tech_naked.php#n3n3">Sudoku.9x9.0012</a> <td>42</td> <td>Naked Triple</td> <td>04</td> </tr>
+			<tr> <td> <a href="http://hodoku.sourceforge.net/en/tech_naked.php#n3n3">Sudoku.9x9.0013</a> <td>58</td> <td>Naked Triple</td> <td>41</td> </tr>
+			<tr> <td> <a href="http://hodoku.sourceforge.net/en/tech_naked.php#n4">Sudoku.9x9.0014</a> <td>50</td> <td>Naked Quadruple</td> <td>70</td> </tr>
+			<tr> <td> <a href="http://hodoku.sourceforge.net/en/tech_naked.php#n4">Sudoku.9x9.0015</a> <td>41</td> <td>Naked Quadruple</td> <td>62</td> </tr>
+			<tr> <td> <a href="http://hodoku.sourceforge.net/en/tech_hidden.php#h4">Sudoku.9x9.0016</a> <td>32</td> <td>Hidden Quadruple</td> <td>08</td> </tr>
+			<tr> <td> <a href="http://hodoku.sourceforge.net/en/tech_hidden.php#h2">Sudoku.9x9.0017</a> <td>54</td> <td>Hidden Pair</td> <td>48</td> </tr>
+		</table>
 		</p>
 		<h2><font color=blue><a name=Documents>Documents</a></font></h2>
 		<p>
