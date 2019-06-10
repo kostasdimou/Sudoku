@@ -5,12 +5,16 @@ import java.lang.IllegalArgumentException;
 class Position {
 	public static final int NOT_FOUND = -1;
 
+	// ATTRIBUTES //
+
 	private static int MAX = 9;
 	private static int MIN = (int)Math.sqrt(MAX);
 	private static int TOTAL = MAX * MAX;
 
 	private int y;
 	private int x;
+
+	// CONSTRUCTORS //
 
 	Position() {
 		y = NOT_FOUND;
@@ -25,6 +29,8 @@ class Position {
 		set(position.y, position.x);
 	}
 
+	// MAX //
+
 	public static void setMax(int max) {
 		MAX = max;
 		MIN = (int)Math.sqrt(MAX);
@@ -35,9 +41,13 @@ class Position {
 		return MAX;
 	}
 
+	// MIN //
+
 	public static int getMin() {
 		return MIN;
 	}
+
+	// TOTAL //
 
 	public static int getTotalNumbers() {
 		return TOTAL;
@@ -46,6 +56,8 @@ class Position {
 	public static int getTotalCandidates() {
 		return TOTAL * TOTAL;
 	}
+
+	// Y //
 
 	// Checks the range of the coordinate.
 	boolean valid(int i) {
@@ -61,6 +73,11 @@ class Position {
 		return false;
 	}
 
+	public void set(int y, int x) {
+		setY(y);
+		setX(x);
+	}
+
 	public void setY(int y) throws IllegalArgumentException {
 		if(!valid(y))
 			throw new IllegalArgumentException();
@@ -71,24 +88,21 @@ class Position {
 		return y;
 	}
 
+	// Returns the y coordinate according to the internal coordinate format
+	public String Y() {
+		return Coordinate.Y(y, MAX);
+	}
+
+	// X //
+
 	public void setX(int x) throws IllegalArgumentException {
 		if(!valid(x))
 			throw new IllegalArgumentException();
 		this.x = x;
 	}
 
-	public void set(int y, int x) {
-		setY(y);
-		setX(x);
-	}
-
 	public int getX() {
 		return x;
-	}
-
-	// Returns the y coordinate according to the internal coordinate format
-	public String Y() {
-		return Coordinate.Y(y, MAX);
 	}
 
 	// Returns the x coordinate according to the internal coordinate format
@@ -96,14 +110,7 @@ class Position {
 		return Coordinate.X(x);
 	}
 
-	public String toString() {
-		return "[" + Y() + "," + X() + "]";
-	}
-
-	// Prints the coordinates of the position according to the internal coordinate format
-	void println() {
-		System.out.println(toString());
-	}
+	// EQUALS //
 
 	// Position coordinates comparison.
 	boolean equals(int y, int x) {
@@ -125,11 +132,26 @@ class Position {
 		return equals((Position)object);
 	}
 
+	// PRINT //
+
+	public String toString() {
+		return "[" + Y() + "," + X() + "]";
+	}
+
+	// Prints the coordinates of the position according to the internal coordinate format
+	void println() {
+		System.out.println(toString());
+	}
+
+	// BASE //
+
 	// Returns the position of the container block
 	Position base() {
 		Position position = new Position(y / MIN * MIN, x / MIN * MIN);
 		return position;
 	}
+
+	//FORWARD //
 
 	// Increments the position according to the given area
 	Position forward(Area a, int step) {
@@ -193,6 +215,8 @@ class Position {
 		return forward(a, 1);
 	}
 
+	// BACKWARD //
+
 	// Decrements the position according to the given area
 	Position backward(Area a, int step) {
 		switch(a) {
@@ -255,6 +279,8 @@ class Position {
 	Position backward(Area a) {
 		return backward(a, 1);
 	}
+
+	// ADJACENT //
 
 	// Returns the adjacent position according to the given area, excluding the exception
 	Position adjacent(Area a, int step, Position exception) {

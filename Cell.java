@@ -4,9 +4,13 @@ import java.lang.IllegalArgumentException;
 class Cell {
 	public static final int MISSING = 0;
 
+	// ATTRIBUTES //
+	
 	private int number = MISSING;
 	private ArrayList<Integer> candidates;
 	private Position position; // for printing purposes
+
+	// CONSTRUCTORS //
 
 	Cell(Position position) {
 		setPosition(position);
@@ -19,12 +23,49 @@ class Cell {
 		setNumber(number);
 	}
 
+	// EQUALS //
+
+	boolean equals(Position position) {
+		if(position == null)
+			return false;
+		if(position == this.position)
+			return true;
+		if(position.getY() == this.position.getY())
+			return (position.getX() == this.position.getX());
+		return false;
+	}
+
 	boolean equals(int number) {
 		return (number == this.number);
 	}
 
+	boolean equals(ArrayList<Integer> candidates) {
+		if(candidates == null)
+			return false;
+		if(candidates == this.candidates)
+			return true;
+		if(candidates.size() != this.candidates.size())
+			return false;
+		for(int i = 0; i < candidates.size(); i++)
+			if(candidates.get(i) != this.candidates.get(i))
+				return false;
+		return true;
+	}
+
 	boolean equals(Cell cell) {
-		return (number == cell.number);
+		if(cell == null)
+			return false;
+		if(cell == this)
+			return true;
+		if(equals(cell.position))
+			if(equals(cell.number))
+				return equals(cell.candidates);
+		return false;
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		return equals((Cell)object);
 	}
 
 	// POINT //

@@ -1,7 +1,8 @@
 public class Coordinate {
 	private static final char ALPHA = 'A';
+	private static final char ZERO = '0';
 
-	public static final char ZERO = '0';
+	// ENUMS //
 
 	public enum Format {
 		CHESS,  // Y=9-1, X=A-I
@@ -10,10 +11,16 @@ public class Coordinate {
 		SUDOKU; // Y=A-I, X=1-9
 	}
 
+	// ATTRIBUTES //
+
 	private static Format format = Format.JAVA;
+
+	// CONSTRUCTORS //
 
 	private Coordinate() {
 	}
+
+	// FORMAT //
 
 	public static boolean setFormat(Format s) {
 		format = s;
@@ -32,6 +39,8 @@ public class Coordinate {
 	public static Format getFormat() {
 		return format;
 	}
+
+	// VALID //
 
 	// Check the given y coordinate for validity.
 	//
@@ -106,6 +115,8 @@ public class Coordinate {
 		return true;
 	}
 
+	// READ //
+
 	// Converts the coordinate format row to the JAVA numbering (0..MAX-1).
 	//
 	// CHESS : 9-1
@@ -154,6 +165,8 @@ public class Coordinate {
 			i--;
 		return i;
 	}
+
+	// PRINT //
 
 	// Returns the y according to the coordinate format.
 	public static String Y(Integer y, int max) {

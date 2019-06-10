@@ -9,6 +9,8 @@ import java.lang.Math;
 
 class Sudoku {
 
+	// ATTRIBUTES //
+
 	private static boolean INTERACTIVE = false;
 	private static boolean SOLVE = false;
 	private static boolean VERBOSE = false;
@@ -18,6 +20,8 @@ class Sudoku {
 	private ArrayList<Method> methodList = new ArrayList<Method>();
 	private ArrayList<Position> goList = new ArrayList<Position>();
 	private Matrix matrix = null;
+
+	// METHOD //
 
 	public enum Method {
 		// name     code  active
@@ -30,10 +34,10 @@ class Sudoku {
 		NAKED_QUINT(  15, true),
 		HIDDEN(       20, false), // dummy entry for grouping
 		HIDDEN_SINGLE(21, true),
-		HIDDEN_PAIR(  22, false),
-		HIDDEN_TRIPLE(23, false),
-		HIDDEN_QUAD(  24, false),
-		HIDDEN_QUINT( 25, false);
+		HIDDEN_PAIR(  22, true),
+		HIDDEN_TRIPLE(23, true),
+		HIDDEN_QUAD(  24, true),
+		HIDDEN_QUINT( 25, true);
 
 		public final int code;
 		public final boolean active;
@@ -50,6 +54,26 @@ class Sudoku {
 			return null;
 		}
 	}
+
+	// Defines the methods we want to use for the solution.
+	boolean setMethod(String name) {
+		boolean found = false;
+		for(Method method: Method.values())
+			if(name.equals(method.name())) {
+				if(!method.active) {
+					System.out.println("Inactive method: " + name);
+					return false;
+				}
+				if(!methodList.contains(method))
+					methodList.add(method);
+				found = true;
+			}
+		if(!found)
+			System.out.println("Unsupported method: " + name);
+		return found;
+	}
+
+	// POSITIONS //
 
 	// Stores the points and numbers combinations we want to examine during solution.
 	boolean setPosition(String yx) {
@@ -73,29 +97,15 @@ class Sudoku {
 		return true;
 	}
 
+	// INTERACTIVE //
+
 	// Activates the INTERACTIVE mode.
 	// The user is prompt to provide the numbers and blanks for populating the matrix.
 	void setInteractive() {
 		INTERACTIVE = true;
 	}
 
-	// Defines the methods we want to use for the solution.
-	boolean setMethod(String name) {
-		boolean found = false;
-		for(Method method: Method.values())
-			if(name.equals(method.name())) {
-				if(!method.active) {
-					System.out.println("Inactive method: " + name);
-					return false;
-				}
-				if(!methodList.contains(method))
-					methodList.add(method);
-				found = true;
-			}
-		if(!found)
-			System.out.println("Unsupported method: " + name);
-		return found;
-	}
+	// INPUT_LIST //
 
 	// Defines the files we want to solve.
 	boolean setFile(String name) {
@@ -114,10 +124,7 @@ class Sudoku {
 		return true;
 	}
 
-	// Activates the SOLVE mode.
-	void setSolve() {
-		SOLVE = true;
-	}
+	// MAX //
 
 	// Defines the MAX width of the Sudoku matrix.
 	boolean setMax(String width) {
@@ -137,11 +144,29 @@ class Sudoku {
 		return true;
 	}
 
+	// VERBOSE //
+
 	// Activates the VERBOSE mode.
 	// VERBOSE mode displays the actions and the matrix for each solution passage.
 	void setVerbose() {
 		VERBOSE = true;
 	}
+
+	// PAUSE //
+
+	void pause() {
+		Scanner in = new Scanner(System.in);
+		String x = in.nextLine();
+	}
+
+	// SOLVE //
+
+	// Activates the SOLVE mode.
+	void setSolve() {
+		SOLVE = true;
+	}
+
+	// STRATEGIES //
 
 	// Full House
 	// A Full House is a row, column or box with a single unsolved cell.
@@ -435,13 +460,8 @@ class Sudoku {
 			setHiddenSubset(position, limit, depth);
 	}
 
-	void pause() {
-		Scanner in = new Scanner(System.in);
-		String x = in.nextLine();
-	}
-
-	void solve(int depth) {
-		Debug.log("solve()", depth);
+	void strategies(int depth) {
+		Debug.log("strategies()", depth);
 		depth++;
 		startTime = System.nanoTime();
 		// If none method is defined then define all active ones
@@ -521,6 +541,8 @@ class Sudoku {
 		statistics(passages);
 	}
 
+	// STATISTICS //
+
 	void statistics(int passages) {
 		System.out.println();
 		System.out.println(matrix.diluted("STATISTICS"));
@@ -549,6 +571,8 @@ class Sudoku {
 			decimal = new String("%.2f");
 		System.out.println("duration   = " + String.format(decimal, duration) + " " + unit);
 	}
+
+	// HELP //
 
 	void help() {
 		System.out.println("Sudoku.java by Kostas Dimou @ 2019");
@@ -628,6 +652,8 @@ class Sudoku {
 		System.out.println("    java Sudoku -s -m FULL_HOUSE -m NAKED_SINGLE < Sudoku.9x9.0001");
 	}
 
+	// READ_NUMBERS //
+
 	boolean readNumbers(InputStream input, int depth) {
 		Debug.log("readNumbers()", depth);
 		depth++;
@@ -677,17 +703,7 @@ class Sudoku {
 		return true;
 	}
 
-	void run() {
-		System.out.println();
-		System.out.println(Matrix.diluted("SUDOKU"));
-		if(INTERACTIVE)
-			System.out.println();
-		int depth = 0;
-		for(InputStream input: inputList)
-			if(readNumbers(input, depth))
-				if(matrix.verifyAll(depth) && SOLVE)
-					solve(depth);
-	}
+	// ARGUMENTS //
 
 	boolean validateArguments() {
 		if(inputList.size() == 0)
@@ -758,10 +774,26 @@ class Sudoku {
 		return true;
 	}
 
+	// SOLVE //
+
+	void solve() {
+		System.out.println();
+		System.out.println(Matrix.diluted("SUDOKU"));
+		if(INTERACTIVE)
+			System.out.println();
+		int depth = 0;
+		for(InputStream input: inputList)
+			if(readNumbers(input, depth))
+				if(matrix.verifyAll(depth) && SOLVE)
+					strategies(depth);
+	}
+
+	// MAIN //
+
 	public static void main(String[] arguments) {
 		Sudoku sudoku = new Sudoku();
 		if(sudoku.readArguments(arguments))
 			if(sudoku.validateArguments())
-				sudoku.run();
+				sudoku.solve();
 	}
 }

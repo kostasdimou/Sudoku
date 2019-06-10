@@ -3,10 +3,16 @@ import java.util.stream.IntStream;
 class Debug {
 	public static final int NO_DEPTH = -1;
 
+	// ATTRIBUTES //
+
 	private static boolean DEBUG = false;
+
+	// CONSTRUCTORS //
 
 	private Debug() {
 	}
+
+	// DEBUG //
 
 	static void set(boolean debug) {
 		DEBUG = debug;
@@ -15,6 +21,8 @@ class Debug {
 	static boolean get() {
 		return DEBUG;
 	}
+
+	// PRINT //
 
 	// Prints the left margin of the call stack
 	static void printMargin(int depth) {

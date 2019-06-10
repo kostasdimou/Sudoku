@@ -2,10 +2,14 @@ import java.util.ArrayList;
 import java.io.PrintStream;
 
 class Matrix {
-	private static boolean ANALYZE;
 
+	// ATTRIBUTES //
+
+	private static boolean ANALYZE;
 	private Cell[][] cells;
 	
+	// CONSTRUCTORS //
+
 	public Matrix(int max) {
 		Position.setMax(max);
 		ANALYZE = false;
@@ -13,6 +17,8 @@ class Matrix {
 		for(Position position = new Position(0, 0); position != null; position = position.forward(Area.ALL))
 			cells[position.getY()][position.getX()] = new Cell(position);
 	}
+
+	// ANALYZE //
 
 	// Activates the ANALYZE mode.
 	static void setAnalyze(boolean analyze) {
@@ -386,6 +392,8 @@ class Matrix {
 			analyze();
 	}
 
+	// ANALYSIS //
+
 	// Prints the candidates grouped by areas (block, horizontal, vertical).
 	void analyze() {
 		boolean memory = Debug.get();
@@ -399,6 +407,8 @@ class Matrix {
 		Debug.set(memory);
 		System.out.println();
 	}
+
+	// VERIFY //
 
 	boolean verify(Position position, int depth) {
 		Debug.log("verify(position = " + position + ")", depth);
