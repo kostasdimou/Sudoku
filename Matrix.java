@@ -420,7 +420,8 @@ class Matrix {
 		boolean valid = true;
 		for(Position position = new Position(0, 0); valid && (position != null); position = position.forward(Area.ALL))
 			valid = verify(position, depth);
-		System.out.println("VERIFIED");
+		if(valid)
+			System.out.println("VERIFIED");
 		return valid;
 	}
 }
