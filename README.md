@@ -3,7 +3,7 @@
 Usage:
 
     Sudoku [--analyze] [--coordinates FORMAT] [--debug] [--file INPUT_FILE] \
-    Sudoku [--go YX] [--help] [--interactive] [--method METHOD] [--solve] \
+           [--go YX] [--help] [--interactive] [--method METHOD] [--solve] \
            [--verbose] [--width WIDTH]
 
 Where:
