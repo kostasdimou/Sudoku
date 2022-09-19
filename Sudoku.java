@@ -589,7 +589,7 @@ class Sudoku {
 		System.out.println("        Selects the coordinates format for the Sudoku matrix.");
 		System.out.println("        Available formats:");
 		System.out.println("            CHESS:  Y=9..1,   X=A..I");
-		System.out.println("            JAVA:   Y=0..9,   X=0..9 (default)");
+		System.out.println("            JAVA:   Y=0..8,   X=0..8 (default)");
 		System.out.println("            ROWCOL: Y=R1..R9, X=C1..C9");
 		System.out.println("            SUDOKU: Y=A..I,   X=1..9");
 		System.out.println("    -d or --debug:");
